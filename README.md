@@ -1,2 +1,2 @@
-# postgresql
+# PostgreSQL
 PostgreSQL Dogu for Cloudogu EcoSystem

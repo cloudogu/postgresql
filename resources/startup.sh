@@ -95,8 +95,9 @@ elif [ -e "${PGDATA}"/postgresqlFullBackup.dump ]; then
   # Moving backup and emptying PGDATA directory
   mv "${PGDATA}"/postgresqlFullBackup.dump /tmp/postgresqlFullBackup.dump
   # New PostgreSQL version requires completely empty folder
+
+  rm -rf "${PGDATA:?}"/.??*
   rm -rf "${PGDATA:?}"/*
-  rm -rf "${PGDATA:?}"/.[^.] .??*
 
   initializePostgreSQL
 

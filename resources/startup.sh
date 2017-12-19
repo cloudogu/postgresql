@@ -110,8 +110,10 @@ elif [ -e "${PGDATA}"/postgresqlFullBackup.dump ]; then
   psql -U postgres -f /tmp/postgresqlFullBackup.dump postgres
   rm /tmp/postgresqlFullBackup.dump
   # Kill postgres
+  pkill -P ${PID}
   kill ${PID}
   waitForPostgreSQLShutdown
+  echo "Database dump successfully restored"
 fi
 
 # set stage for health check

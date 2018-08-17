@@ -1,4 +1,4 @@
-FROM registry.cloudogu.com/official/base:3.7-3
+FROM registry.cloudogu.com/official/base:3.6-1
 MAINTAINER Sebastian Sdorra <sebastian.sdorra@cloudogu.com>
 
 # install postgresql and gosu

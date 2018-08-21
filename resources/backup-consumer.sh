@@ -19,8 +19,6 @@ done
 if [[ ! -z $username && ! -z $database_name ]]; then
 
   # database dump printed on stdOut
-  echo "backup data for username: $username and database: $database_name"
-  exit 1;
   pg_dump -U $username -d $database_name
 
 else

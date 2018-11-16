@@ -66,10 +66,6 @@ function initializePostgreSQL() {
     # set generated password
     echo "ALTER USER ${POSTGRES_USER} WITH SUPERUSER PASSWORD '${POSTGRES_PASSWORD}';" | 2>/dev/null 1>&2 gosu postgres postgres --single -jE
 
-    # create /run/postgresql
-    mkdir -p /run/postgresql
-    chown postgres:postgres /run/postgresql
-
     # generate pg_hba.conf
     create_hba > "${PGDATA}"/pg_hba.conf
 }
@@ -89,6 +85,11 @@ function waitForPostgreSQLShutdown() {
 }
 
 chown -R postgres "$PGDATA"
+
+# create /run/postgresql, if not existent
+mkdir -p /run/postgresql
+chown postgres:postgres /run/postgresql
+
 if [ -z "$(ls -A "$PGDATA")" ]; then
   initializePostgreSQL
 elif [ -e "${PGDATA}"/postgresqlFullBackup.dump ]; then

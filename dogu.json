@@ -28,6 +28,9 @@
     },{
       "Name": "pre-upgrade",
       "Command": "/pre-upgrade.sh"
+    },{
+      "Name": "backup-consumer",
+      "Command": "/backup-consumer.sh"
     }
   ],
   "HealthChecks": [

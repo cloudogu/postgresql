@@ -1,7 +1,7 @@
 FROM registry.cloudogu.com/official/base:3.6-2
 
 LABEL NAME="official/postgresql" \
-        VERSION="9.6.6-5" \
+        VERSION="9.6.13-1" \
         maintainer="christian.beyer@cloudogu.com"
 
 ENV LANG=en_US.utf8 \

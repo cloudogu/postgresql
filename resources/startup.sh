@@ -40,8 +40,11 @@ function create_hba() {
   done
 }
 
-function initializePostgreSQL() {
+function write_hba() {
+  create_hba > "${PGDATA}"/pg_hba.conf
+}
 
+function initializePostgreSQL() {
     # set stage for health check
     doguctl state installing
 
@@ -65,9 +68,6 @@ function initializePostgreSQL() {
 
     # set generated password
     echo "ALTER USER ${POSTGRES_USER} WITH SUPERUSER PASSWORD '${POSTGRES_PASSWORD}';" | 2>/dev/null 1>&2 gosu postgres postgres --single -jE
-
-    # generate pg_hba.conf
-    create_hba > "${PGDATA}"/pg_hba.conf
 }
 
 function waitForPostgreSQLStartup() {
@@ -89,6 +89,9 @@ chown -R postgres "$PGDATA"
 # create /run/postgresql, if not existent
 mkdir -p /run/postgresql
 chown postgres:postgres /run/postgresql
+
+# generate pg_hba.conf
+write_hba
 
 if [ -z "$(ls -A "$PGDATA")" ]; then
   initializePostgreSQL

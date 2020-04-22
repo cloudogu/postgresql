@@ -6,18 +6,42 @@ set -o pipefail
 function mask2cidr() {
   NBITS=0
   IFS=.
-  for DEC in $1 ; do
+  for DEC in $1; do
     case $DEC in
-      255) let NBITS+=8;;
-      254) let NBITS+=7 ; break ;;
-      252) let NBITS+=6 ; break ;;
-      248) let NBITS+=5 ; break ;;
-      240) let NBITS+=4 ; break ;;
-      224) let NBITS+=3 ; break ;;
-      192) let NBITS+=2 ; break ;;
-      128) let NBITS+=1 ; break ;;
-      0);;
-      *) echo "Error: ${DEC} is not recognised"; exit 1
+    255) let NBITS+=8 ;;
+    254)
+      let NBITS+=7
+      break
+      ;;
+    252)
+      let NBITS+=6
+      break
+      ;;
+    248)
+      let NBITS+=5
+      break
+      ;;
+    240)
+      let NBITS+=4
+      break
+      ;;
+    224)
+      let NBITS+=3
+      break
+      ;;
+    192)
+      let NBITS+=2
+      break
+      ;;
+    128)
+      let NBITS+=1
+      break
+      ;;
+    0) ;;
+    *)
+      echo "Error: ${DEC} is not recognised"
+      exit 1
+      ;;
     esac
   done
   echo "${NBITS}"
@@ -40,45 +64,45 @@ function create_hba() {
   done
 }
 
+function write_pg_hba_conf() {
+  create_hba >"${PGDATA}"/pg_hba.conf
+}
+
 function initializePostgreSQL() {
+  # set stage for health check
+  doguctl state installing
 
-    # set stage for health check
-    doguctl state installing
+  # install database
+  gosu postgres initdb
 
-    # install database
-    gosu postgres initdb
+  # postgres user
+  POSTGRES_USER="postgres"
 
-    # postgres user
-    POSTGRES_USER="postgres"
+  # store the user
+  doguctl config user "${POSTGRES_USER}"
 
-    # store the user
-    doguctl config user "${POSTGRES_USER}"
+  # create random password
+  POSTGRES_PASSWORD=$(doguctl random)
 
-    # create random password
-    POSTGRES_PASSWORD=$(doguctl random)
+  # store the password encrypted
+  doguctl config -e password "${POSTGRES_PASSWORD}"
 
-    # store the password encrypted
-    doguctl config -e password "${POSTGRES_PASSWORD}"
+  # open port
+  sed -ri "s/^#(listen_addresses\s*=\s*)\S+/\1'*'/" "$PGDATA"/postgresql.conf
 
-    # open port
-    sed -ri "s/^#(listen_addresses\s*=\s*)\S+/\1'*'/" "$PGDATA"/postgresql.conf
-
-    # set generated password
-    echo "ALTER USER ${POSTGRES_USER} WITH SUPERUSER PASSWORD '${POSTGRES_PASSWORD}';" | 2>/dev/null 1>&2 gosu postgres postgres --single -jE
-
-    # generate pg_hba.conf
-    create_hba > "${PGDATA}"/pg_hba.conf
+  # set generated password
+  echo "ALTER USER ${POSTGRES_USER} WITH SUPERUSER PASSWORD '${POSTGRES_PASSWORD}';" | gosu 2>/dev/null 1>&2 postgres postgres --single -jE
 }
 
 function waitForPostgreSQLStartup() {
-  while ! pg_isready > /dev/null; do
+  while ! pg_isready >/dev/null; do
     # Postgres is not ready yet to accept connections
     sleep 0.1
   done
 }
 
 function waitForPostgreSQLShutdown() {
-  while pgrep -x postgres > /dev/null ; do
+  while pgrep -x postgres >/dev/null; do
     # Postgres is still running
     sleep 0.1
   done
@@ -92,6 +116,7 @@ chown postgres:postgres /run/postgresql
 
 if [ -z "$(ls -A "$PGDATA")" ]; then
   initializePostgreSQL
+  write_pg_hba_conf
 elif [ -e "${PGDATA}"/postgresqlFullBackup.dump ]; then
   # Moving backup and emptying PGDATA directory
   mv "${PGDATA}"/postgresqlFullBackup.dump /tmp/postgresqlFullBackup.dump
@@ -115,6 +140,10 @@ elif [ -e "${PGDATA}"/postgresqlFullBackup.dump ]; then
   kill ${PID}
   waitForPostgreSQLShutdown
   echo "Database dump successfully restored"
+
+  write_pg_hba_conf
+else
+  write_pg_hba_conf
 fi
 
 # set stage for health check

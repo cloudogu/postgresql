@@ -8,33 +8,33 @@ function mask2cidr() {
   IFS=.
   for DEC in $1; do
     case $DEC in
-    255) let NBITS+=8 ;;
+    255) (( NBITS+=8 ));;
     254)
-      let NBITS+=7
+      (( NBITS+=7 ))
       break
       ;;
     252)
-      let NBITS+=6
+      (( NBITS+=6 ))
       break
       ;;
     248)
-      let NBITS+=5
+      (( NBITS+=5 ))
       break
       ;;
     240)
-      let NBITS+=4
+      (( NBITS+=4 ))
       break
       ;;
     224)
-      let NBITS+=3
+      (( NBITS+=3 ))
       break
       ;;
     192)
-      let NBITS+=2
+      (( NBITS+=2 ))
       break
       ;;
     128)
-      let NBITS+=1
+      (( NBITS+=1 ))
       break
       ;;
     0) ;;

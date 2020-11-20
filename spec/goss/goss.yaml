@@ -42,8 +42,4 @@ process:
 mount:
   /var/lib/postgresql:
     exists: true
-    opts:
-    - rw
-    - relatime
-    source: /dev/sda5
     filesystem: btrfs

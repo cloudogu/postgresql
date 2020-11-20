@@ -11,7 +11,7 @@ node('docker') {
 
         stage('Lint') {
             lintDockerfile()
-            shellCheck('resources/pre-upgrade.sh resources/create-sa.sh')
+            shellCheck('resources/backup-consumer.sh resources/create-sa.sh resources/pre-upgrade.sh resources/startup.sh')
         }
 }
 

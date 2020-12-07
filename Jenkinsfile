@@ -21,6 +21,9 @@ node('vagrant') {
     git.committerName = 'cesmarvin'
     git.committerEmail = 'cesmarvin@cloudogu.com'
     String doguDirectory = '/dogu'
+    GitFlow gitflow = new GitFlow(this, git)
+    GitHub github = new GitHub(this, git)
+    Changelog changelog = new Changelog(this)
 
     timestamps {
         properties([
@@ -55,6 +58,22 @@ node('vagrant') {
 
             stage('Verify') {
                 ecoSystem.verify(doguDirectory)
+            }
+
+            if (gitflow.isReleaseBranch()) {
+                String releaseVersion = git.getSimpleBranchName()
+
+                stage('Finish Release') {
+                    gitflow.finishRelease(releaseVersion)
+                }
+
+                stage('Push Dogu to registry') {
+                    ecoSystem.push(doguDirectory)
+                }
+
+                stage ('Add Github-Release') {
+                    github.createReleaseWithChangelog(releaseVersion, changelog)
+                }
             }
 
         } finally {

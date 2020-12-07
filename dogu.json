@@ -31,6 +31,9 @@
     },{
       "Name": "backup-consumer",
       "Command": "/backup-consumer.sh"
+    },{
+      "Name": "upgrade-notification",
+      "Command": "/upgrade-notification.sh"
     }
   ],
   "HealthChecks": [

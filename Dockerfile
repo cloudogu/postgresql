@@ -9,10 +9,9 @@ ENV LANG=en_US.utf8 \
     POSTGRESQL_VERSION=12.5-r0 \
     GOSU_SHA256=0f25a21cf64e58078057adc78f38705163c1d564a959ff30a891c31917011a54
 
-
 # install postgresql and gosu
 # Note: the current postgresql version from alpine is installed
-# https://pkgs.alpinelinux.org/packages?name=postgresql&branch=v3.6&repo=&arch=x86_64
+# https://pkgs.alpinelinux.org/packages?name=postgresql&branch=v3.12&arch=x86_64
 RUN apk update \
  && apk add --update postgresql="${POSTGRESQL_VERSION}" \
  && wget --progress=bar:force:noscroll "https://github.com/tianon/gosu/releases/download/1.12/gosu-amd64" \

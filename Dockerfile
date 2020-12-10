@@ -1,4 +1,4 @@
-FROM registry.cloudogu.com/official/base:3.6-2
+FROM registry.cloudogu.com/official/base:3.12.1-1
 
 LABEL NAME="official/postgresql" \
         VERSION="9.6.13-1" \
@@ -6,16 +6,15 @@ LABEL NAME="official/postgresql" \
 
 ENV LANG=en_US.utf8 \
     PGDATA=/var/lib/postgresql \
-    POSTGRESQL_VERSION=9.6.13-r0 \
-    GOSU_SHA256=5b3b03713a888cee84ecbf4582b21ac9fd46c3d935ff2d7ea25dd5055d302d3c
-
+    POSTGRESQL_VERSION=12.5-r0 \
+    GOSU_SHA256=0f25a21cf64e58078057adc78f38705163c1d564a959ff30a891c31917011a54
 
 # install postgresql and gosu
 # Note: the current postgresql version from alpine is installed
-# https://pkgs.alpinelinux.org/packages?name=postgresql&branch=v3.6&repo=&arch=x86_64
+# https://pkgs.alpinelinux.org/packages?name=postgresql&branch=v3.12&arch=x86_64
 RUN apk update \
  && apk add --update postgresql="${POSTGRESQL_VERSION}" \
- && wget --progress=bar:force:noscroll "https://github.com/tianon/gosu/releases/download/1.10/gosu-amd64" \
+ && wget --progress=bar:force:noscroll "https://github.com/tianon/gosu/releases/download/1.12/gosu-amd64" \
  && echo "${GOSU_SHA256} *gosu-amd64" | sha256sum -c - \
  && mv /gosu-amd64 /usr/local/bin/gosu \
  && chmod +x /usr/local/bin/gosu \

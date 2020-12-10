@@ -4,6 +4,7 @@ set -o nounset
 set -o pipefail
 
 function mask2cidr() {
+  local storedIFS="${IFS}"
   NBITS=0
   IFS=.
   for DEC in $1; do
@@ -44,6 +45,7 @@ function mask2cidr() {
       ;;
     esac
   done
+  IFS="${storedIFS}"
   echo "${NBITS}"
 }
 

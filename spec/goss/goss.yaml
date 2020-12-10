@@ -19,6 +19,11 @@ file:
     owner: root
     group: root
     filetype: file
+  /upgrade-notification.sh:
+    exists: true
+    owner: root
+    group: root
+    filetype: file
   /usr/local/bin/gosu:
     exists: true
     owner: root

@@ -1,6 +1,6 @@
 {
   "Name": "official/postgresql",
-  "Version": "9.6.13-1",
+  "Version": "12.5-1",
   "DisplayName": "PostgreSQL",
   "Description": "PostgreSQL Database.",
   "Url": "https://www.postgresql.org/",
@@ -25,12 +25,18 @@
       "Name": "service-account-create",
       "Description": "Creates a new service account",
       "Command": "/create-sa.sh"
-    },{
+    },
+    {
       "Name": "pre-upgrade",
       "Command": "/pre-upgrade.sh"
-    },{
+    },
+    {
       "Name": "backup-consumer",
       "Command": "/backup-consumer.sh"
+    },
+    {
+      "Name": "upgrade-notification",
+      "Command": "/upgrade-notification.sh"
     }
   ],
   "HealthChecks": [
@@ -40,6 +46,24 @@
     },
     {
       "Type": "state"
+    }
+  ],
+  "Configuration": [
+    {
+      "Name": "container_config/memory_limit",
+      "Description": "Limits the container's memory usage. Use a positive integer value followed by one of these units [b,k,m,g] (byte, kibibyte, mebibyte, gibibyte).",
+      "Optional": true,
+      "Validation": {
+        "Type": "BINARY_MEASUREMENT"
+      }
+    },
+    {
+      "Name": "container_config/swap_limit",
+      "Description": "Limits the container's swap memory usage. Use zero or a positive integer value followed by one of these units [b,k,m,g] (byte, kibibyte, mebibyte, gibibyte). 0 will disable swapping.",
+      "Optional": true,
+      "Validation": {
+        "Type": "BINARY_MEASUREMENT"
+      }
     }
   ]
 }

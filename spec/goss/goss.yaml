@@ -1,25 +1,36 @@
 file:
+  /backup-consumer.sh:
+    exists: true
+    owner: root
+    group: root
+    filetype: file
   /create-sa.sh:
     exists: true
-    mode: "0755"
+    owner: root
+    group: root
+    filetype: file
+  /pre-upgrade.sh:
+    exists: true
     owner: root
     group: root
     filetype: file
   /startup.sh:
     exists: true
-    mode: "0755"
+    owner: root
+    group: root
+    filetype: file
+  /upgrade-notification.sh:
+    exists: true
     owner: root
     group: root
     filetype: file
   /usr/local/bin/gosu:
     exists: true
-    mode: "0755"
     owner: root
     group: root
     filetype: file
   /var/lib/postgresql:
     exists: true
-    mode: "0700"
     owner: postgres
     filetype: directory
 package:
@@ -33,3 +44,7 @@ port:
 process:
   postgres:
     running: true
+mount:
+  /var/lib/postgresql:
+    exists: true
+    filesystem: btrfs

@@ -9,12 +9,6 @@ if [ X"${SERVICE}" = X"" ]; then
     exit 1
 fi
 
-COLLATION="${2:-}"
-if [[ $COLLATION && ! $COLLATION == *".UTF-8"* ]]; then
-  echo "encodings other than 'UTF-8' are not allowed"
-  exit 1
-fi
-
 # connection user
 ADMIN_USERNAME=$(doguctl config user)
 

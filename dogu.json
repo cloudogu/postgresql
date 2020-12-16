@@ -27,6 +27,11 @@
       "Command": "/create-sa.sh"
     },
     {
+      "Name": "service-account-remove",
+      "Description": "Removes a service account",
+      "Command": "/remove-sa.sh"
+    },
+    {
       "Name": "pre-upgrade",
       "Command": "/pre-upgrade.sh"
     },

@@ -1,6 +1,6 @@
 {
   "Name": "official/postgresql",
-  "Version": "12.5-1",
+  "Version": "12.5-2",
   "DisplayName": "PostgreSQL",
   "Description": "PostgreSQL Database.",
   "Url": "https://www.postgresql.org/",
@@ -25,6 +25,11 @@
       "Name": "service-account-create",
       "Description": "Creates a new service account",
       "Command": "/create-sa.sh"
+    },
+    {
+      "Name": "service-account-remove",
+      "Description": "Removes a service account",
+      "Command": "/remove-sa.sh"
     },
     {
       "Name": "pre-upgrade",

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v12.5-2] - 2020-12-16
+### Added
+- command to remove service accounts
+
 ## [v12.5-1] - 2020-12-10
 ### Changed
 - Major upgrade to PostgreSQL 12; #7

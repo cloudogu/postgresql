@@ -1,3 +1,16 @@
+FROM golang:1.14-alpine3.12 AS builder
+
+ENV WORKDIR=/go/src/postgresql/startup
+
+RUN mkdir -p ${WORKDIR}
+WORKDIR ${WORKDIR}
+
+COPY ./startup ${WORKDIR}
+
+RUN go build
+
+
+
 FROM registry.cloudogu.com/official/base:3.12.1-1
 
 LABEL NAME="official/postgresql" \
@@ -22,10 +35,12 @@ RUN apk update \
 
 COPY resources/ /
 
+COPY --from=builder /go/src/postgresql/startup/startup /
+
 VOLUME ["/var/lib/postgresql"]
 
 HEALTHCHECK CMD doguctl healthy postgresql || exit 1
 
 EXPOSE 5432
 
-CMD ["/startup.sh"]
+CMD ["/startup"]

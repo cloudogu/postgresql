@@ -110,8 +110,6 @@ function waitForPostgreSQLShutdown() {
   done
 }
 
-chown -R postgres "$PGDATA"
-
 # create /run/postgresql, if not existent
 mkdir -p /run/postgresql
 chown postgres:postgres /run/postgresql

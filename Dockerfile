@@ -1,4 +1,4 @@
-FROM registry.cloudogu.com/official/base:3.12.4-1
+FROM registry.cloudogu.com/official/base:3.12.4-2
 
 LABEL NAME="official/postgresql" \
         VERSION="12.5-2" \

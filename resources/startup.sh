@@ -110,6 +110,33 @@ function waitForPostgreSQLShutdown() {
   done
 }
 
+# See https://www.postgresql.org/docs/12/runtime-config-logging.html
+function setDoguLogLevel() {
+  echo "Mapping dogu specific log level..."
+  currentLogLevel=$(doguctl config --default "WARN" "logging/root")
+
+  case "${currentLogLevel}" in
+    "ERROR")
+      export POSTGRESQL_LOGLEVEL="ERROR"
+    ;;
+    "INFO")
+      export POSTGRESQL_LOGLEVEL="INFO"
+    ;;
+    "DEBUG")
+      export POSTGRESQL_LOGLEVEL="DEBUG5"
+    ;;
+    *)
+      export POSTGRESQL_LOGLEVEL="WARNING"
+    ;;
+  esac
+  # Remove old log level setting, if existent
+  sed -i '/^log_min_messages/d' /var/lib/postgresql/postgresql.conf
+  # Append new log level setting
+  echo "log_min_messages = ${POSTGRESQL_LOGLEVEL}" >> /var/lib/postgresql/postgresql.conf
+}
+
+
+
 chown -R postgres "$PGDATA"
 
 # create /run/postgresql, if not existent
@@ -147,6 +174,8 @@ elif [ -e "${PGDATA}"/postgresqlFullBackup.dump ]; then
 else
   write_pg_hba_conf
 fi
+
+setDoguLogLevel
 
 # set stage for health check
 doguctl state ready

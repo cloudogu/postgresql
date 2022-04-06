@@ -1,7 +1,7 @@
 FROM registry.cloudogu.com/official/base:3.12.4-2
 
 LABEL NAME="official/postgresql" \
-        VERSION="12.9-1" \
+        VERSION="12.10-1" \
         maintainer="hello@cloudogu.com"
 
 ENV LANG=en_US.utf8 \

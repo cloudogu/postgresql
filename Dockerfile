@@ -1,18 +1,22 @@
 FROM registry.cloudogu.com/official/base:3.12.4-2
 
 LABEL NAME="official/postgresql" \
-        VERSION="12.9-1" \
+        VERSION="12.10-1" \
         maintainer="hello@cloudogu.com"
 
 ENV LANG=en_US.utf8 \
     PGDATA=/var/lib/postgresql \
-    POSTGRESQL_VERSION=12.9-r0 \
+    POSTGRESQL_VERSION=12.10-r0 \
     GOSU_SHA256=0f25a21cf64e58078057adc78f38705163c1d564a959ff30a891c31917011a54
 
 # install postgresql and gosu
 # Note: the current postgresql version from alpine is installed
 # https://pkgs.alpinelinux.org/packages?name=postgresql&branch=v3.12&arch=x86_64
-RUN apk update \
+RUN set -x -o errexit \
+ && set -o nounset \
+ && set -o pipefail \
+ && apk update \
+ && apk upgrade \
  && apk add --update postgresql="${POSTGRESQL_VERSION}" \
  && wget --progress=bar:force:noscroll "https://github.com/tianon/gosu/releases/download/1.12/gosu-amd64" \
  && echo "${GOSU_SHA256} *gosu-amd64" | sha256sum -c - \

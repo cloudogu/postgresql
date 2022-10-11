@@ -57,6 +57,8 @@ function create_hba() {
   echo 'host    all             all             127.0.0.1/32            trust'
   echo '# IPv6 local connections:'
   echo 'host    all             all             ::1/128                 trust'
+  echo '# all connections:'
+  echo 'host    all             all             ::0/0            md5'
   echo '# container networks'
   for NETWITHMASK in $(netstat -nr | tail -n +3 | grep -v '^0' | awk '{print $1"/"$3}'); do
     NET=$(echo "${NETWITHMASK}" | awk -F'/' '{print $1}')

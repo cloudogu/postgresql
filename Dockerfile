@@ -28,7 +28,7 @@ COPY resources/ /
 
 VOLUME ["/var/lib/postgresql"]
 
-HEALTHCHECK CMD doguctl healthy postgresql || exit 1
+HEALTHCHECK --interval=5s CMD doguctl healthy postgresql || exit 1
 
 EXPOSE 5432
 

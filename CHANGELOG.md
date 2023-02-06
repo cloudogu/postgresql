@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [v12.13-1] - 2023-02-06
 ### Changed
 - Upgrades PostgreSQL to 12.13 (#15)
   - This update contains several security fixes

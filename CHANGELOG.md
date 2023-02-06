@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v12.13-1] - 2023-02-06
+### Changed
+- Upgrades PostgreSQL to 12.13 (#15)
+  - This update contains several security fixes
+- Update base image to 3.17.1-1 (#15)
+- Set healthcheck interval to 5 seconds
+
 ## [v12.10-1] - 2022-04-06
 ### Changed
 - Upgrades PostgreSQL to 12.10

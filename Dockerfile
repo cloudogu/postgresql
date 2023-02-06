@@ -1,12 +1,12 @@
-FROM registry.cloudogu.com/official/base:3.12.4-2
+FROM registry.cloudogu.com/official/base:3.17.1-1
 
 LABEL NAME="official/postgresql" \
-        VERSION="12.10-1" \
+        VERSION="12.13-1" \
         maintainer="hello@cloudogu.com"
 
 ENV LANG=en_US.utf8 \
     PGDATA=/var/lib/postgresql \
-    POSTGRESQL_VERSION=12.10-r0 \
+    POSTGRESQL_VERSION=12.13-r1 \
     GOSU_SHA256=0f25a21cf64e58078057adc78f38705163c1d564a959ff30a891c31917011a54
 
 # install postgresql and gosu
@@ -17,7 +17,7 @@ RUN set -x -o errexit \
  && set -o pipefail \
  && apk update \
  && apk upgrade \
- && apk add --update postgresql="${POSTGRESQL_VERSION}" \
+ && apk add --update postgresql12="${POSTGRESQL_VERSION}" \
  && wget --progress=bar:force:noscroll "https://github.com/tianon/gosu/releases/download/1.12/gosu-amd64" \
  && echo "${GOSU_SHA256} *gosu-amd64" | sha256sum -c - \
  && mv /gosu-amd64 /usr/local/bin/gosu \
@@ -28,7 +28,7 @@ COPY resources/ /
 
 VOLUME ["/var/lib/postgresql"]
 
-HEALTHCHECK CMD doguctl healthy postgresql || exit 1
+HEALTHCHECK --interval=5s CMD doguctl healthy postgresql || exit 1
 
 EXPOSE 5432
 

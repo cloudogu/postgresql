@@ -29,7 +29,12 @@ node('vagrant') {
             // Keep only the last x builds to preserve space
             buildDiscarder(logRotator(numToKeepStr: '10')),
             // Don't run concurrent builds for a branch, because they use the same workspace directory
-            disableConcurrentBuilds()
+            disableConcurrentBuilds(),
+            // Parameter to activate dogu upgrade test on demand
+            parameters([
+                    booleanParam(defaultValue: false, description: 'Test dogu upgrade from latest release or optionally from defined version below', name: 'TestDoguUpgrade'),
+                    string(defaultValue: '', description: 'Old Dogu version for the upgrade test (optional; e.g. 4.1.0-3)', name: 'OldDoguVersionForUpgradeTest'),
+            ])
         ])
 
         EcoSystem ecoSystem = new EcoSystem(this, 'gcloud-ces-operations-internal-packer', 'jenkins-gcloud-ces-operations-internal')
@@ -57,6 +62,16 @@ node('vagrant') {
 
             stage('Verify') {
                 ecoSystem.verify(doguDirectory)
+            }
+
+            if (params.TestDoguUpgrade != null && params.TestDoguUpgrade){
+                stage('Upgrade dogu'){
+                    ecoSystem.upgradeFromPreviousRelease(params.OldDoguVersionForUpgradeTest, doguName)
+                }
+
+                stage('Verify - after upgrade') {
+                    ecoSystem.verify(doguDirectory)
+                }
             }
 
             if (gitflow.isReleaseBranch()) {

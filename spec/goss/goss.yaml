@@ -39,7 +39,7 @@ file:
     owner: postgres
     filetype: directory
 package:
-  postgresql:
+  postgresql12:
     installed: true
 port:
   tcp:5432:

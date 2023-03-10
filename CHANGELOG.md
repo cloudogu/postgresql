@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Changed
 - Upgrade to PostgreSQL 12.14; #18
+  - This update contains a security fix
 
 ## [v12.13-1] - 2023-02-06
 ### Changed

@@ -1,12 +1,12 @@
 FROM registry.cloudogu.com/official/base:3.17.1-1
 
 LABEL NAME="official/postgresql" \
-        VERSION="12.13-1" \
+        VERSION="12.14-1" \
         maintainer="hello@cloudogu.com"
 
 ENV LANG=en_US.utf8 \
     PGDATA=/var/lib/postgresql \
-    POSTGRESQL_VERSION=12.13-r1 \
+    POSTGRESQL_VERSION=12.14-r0 \
     GOSU_SHA256=0f25a21cf64e58078057adc78f38705163c1d564a959ff30a891c31917011a54
 
 # install postgresql and gosu

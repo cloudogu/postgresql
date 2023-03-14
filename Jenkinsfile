@@ -16,6 +16,7 @@ node('docker') {
 
 node('vagrant') {
 
+    String doguName = "postgresql"
     Git git = new Git(this, 'cesmarvin')
     git.committerName = 'cesmarvin'
     git.committerEmail = 'cesmarvin@cloudogu.com'

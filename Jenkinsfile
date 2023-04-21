@@ -12,6 +12,11 @@ node('docker') {
             lintDockerfile()
             shellCheck('resources/backup-consumer.sh resources/create-sa.sh resources/pre-upgrade.sh resources/remove-sa.sh resources/startup.sh resources/upgrade-notification.sh')
         }
+
+        stage('Check Markdown Links') {
+            Markdown markdown = new Markdown(this, "3.11.0")
+            markdown.check()
+        }
 }
 
 node('vagrant') {

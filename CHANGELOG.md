@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v12.14-2] - 2023-04-21
+### Changed
+- [#20] Upgrade Base Image to 3.17.3-2
+
+### Security
+- [#20] Fixed CVE-2023-27536, CVE-2023-27536 and some others
+
 ## [v12.14-1] - 2023-03-14
 ### Changed
 - Upgrade to PostgreSQL 12.14; #18

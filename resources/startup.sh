@@ -59,10 +59,19 @@ function create_hba() {
   echo 'host    all             all             ::1/128                 trust'
   echo '# container networks'
   for NETWITHMASK in $(netstat -nr | tail -n +3 | grep -v '^0' | awk '{print $1"/"$3}'); do
+    local NET
     NET=$(echo "${NETWITHMASK}" | awk -F'/' '{print $1}')
+    local MASK
     MASK=$(echo "${NETWITHMASK}" | awk -F'/' '{print $2}')
+    local CIDR
     CIDR=$(mask2cidr "$MASK")
-    echo "host    all             all             ${NET}/${CIDR}  password"
+    local podNamespace="${POD_NAMESPACE:-""}"
+    if [ "${podNamespace}" == "" ]; then
+      echo "host    all             all             ${NET}/${CIDR}  password"
+    else
+      # Allow access from all nodes of a kubernetes cluster (/16 is the default kubernetes cluster cidr with 256 nodes)
+      echo "host    all             all             ${NET}/16 password"
+    fi
   done
 }
 

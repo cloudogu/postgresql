@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Fixed
+- [#22] Allow connections from all nodes of a cluster (cidr /16) in kubernetes environments.
 
 ## [v12.14-2] - 2023-04-21
 ### Changed

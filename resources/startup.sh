@@ -65,13 +65,17 @@ function create_hba() {
     MASK=$(echo "${NETWITHMASK}" | awk -F'/' '{print $2}')
     local CIDR
     CIDR=$(mask2cidr "$MASK")
-    local podNamespace="${POD_NAMESPACE:-""}"
-    if [ "${podNamespace}" == "" ]; then
-      echo "host    all             all             ${NET}/${CIDR}  password"
+    local isNotRunningUnderK8s="${POD_NAMESPACE:-"not running k8s"}"
+    local netmaskCidrValue
+    if [ "${isNotRunningUnderK8s}" == "not running k8s" ]; then
+      netmaskCidrValue="${NET}/${CIDR}"
     else
-      # Allow access from all nodes of a kubernetes cluster (/16 is the default kubernetes cluster cidr with 256 nodes)
-      echo "host    all             all             ${NET}/16 password"
+      # Hyper-scalers default to a CIDR of /32 which blocks any network traffic from others pods esp. from other nodes.
+      # /16 allows traffic from a sufficiently large network range from the kubernetes cluster, independently how the
+      # cluster is configured.
+      netmaskCidrValue="${NET}/16"
     fi
+    echo "host    all             all             ${netmaskCidrValue}          password"
   done
 }
 

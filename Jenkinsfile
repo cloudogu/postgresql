@@ -1,5 +1,5 @@
 #!groovy
-@Library(['github.com/cloudogu/ces-build-lib@1.64.1', 'github.com/cloudogu/dogu-build-lib@v2.0.0'])
+@Library(['github.com/cloudogu/ces-build-lib@1.65.0', 'github.com/cloudogu/dogu-build-lib@v2.1.0'])
 import com.cloudogu.ces.cesbuildlib.*
 import com.cloudogu.ces.dogubuildlib.*
 
@@ -16,6 +16,11 @@ node('docker') {
         stage('Check Markdown Links') {
             Markdown markdown = new Markdown(this, "3.11.0")
             markdown.check()
+        }
+
+        stage('Bats Tests') {
+            Bats bats = new Bats(this, docker)
+            bats.checkAndExecuteTests()
         }
 }
 

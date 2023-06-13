@@ -17,6 +17,11 @@ node('docker') {
             Markdown markdown = new Markdown(this, "3.11.0")
             markdown.check()
         }
+
+        stage('Bats Tests') {
+            Bats bats = new Bats(this, docker)
+            bats.checkAndExecuteTests()
+        }
 }
 
 node('vagrant') {

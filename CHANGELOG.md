@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v12.15-1] - 2023-06-13
+### Fixed
+- [#22] Allow connections from all nodes of a cluster (cidr /16) in kubernetes environments.
+
 ## [v12.14-2] - 2023-04-21
 ### Changed
 - [#20] Upgrade Base Image to 3.17.3-2

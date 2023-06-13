@@ -18,12 +18,12 @@ RUN set -x -o errexit \
 FROM registry.cloudogu.com/official/base:3.17.3-2
 
 LABEL NAME="official/postgresql" \
-        VERSION="12.14-2" \
+        VERSION="12.15-1" \
         maintainer="hello@cloudogu.com"
 
 ENV LANG=en_US.utf8 \
     PGDATA=/var/lib/postgresql \
-    POSTGRESQL_VERSION=12.14-r0
+    POSTGRESQL_VERSION=12.15-r0
 
 # install postgresql and gosu
 # Note: the current postgresql version from alpine is installed

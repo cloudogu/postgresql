@@ -9,33 +9,33 @@ function mask2cidr() {
   IFS=.
   for DEC in $1; do
     case $DEC in
-    255) (( NBITS+=8 ));;
+    255) ((NBITS += 8)) ;;
     254)
-      (( NBITS+=7 ))
+      ((NBITS += 7))
       break
       ;;
     252)
-      (( NBITS+=6 ))
+      ((NBITS += 6))
       break
       ;;
     248)
-      (( NBITS+=5 ))
+      ((NBITS += 5))
       break
       ;;
     240)
-      (( NBITS+=4 ))
+      ((NBITS += 4))
       break
       ;;
     224)
-      (( NBITS+=3 ))
+      ((NBITS += 3))
       break
       ;;
     192)
-      (( NBITS+=2 ))
+      ((NBITS += 2))
       break
       ;;
     128)
-      (( NBITS+=1 ))
+      ((NBITS += 1))
       break
       ;;
     0) ;;
@@ -59,10 +59,23 @@ function create_hba() {
   echo 'host    all             all             ::1/128                 trust'
   echo '# container networks'
   for NETWITHMASK in $(netstat -nr | tail -n +3 | grep -v '^0' | awk '{print $1"/"$3}'); do
+    local NET
     NET=$(echo "${NETWITHMASK}" | awk -F'/' '{print $1}')
+    local MASK
     MASK=$(echo "${NETWITHMASK}" | awk -F'/' '{print $2}')
+    local CIDR
     CIDR=$(mask2cidr "$MASK")
-    echo "host    all             all             ${NET}/${CIDR}  password"
+    local isNotRunningUnderK8s="${POD_NAMESPACE:-"not running k8s"}"
+    local netmaskCidrValue
+    if [ "${isNotRunningUnderK8s}" == "not running k8s" ]; then
+      netmaskCidrValue="${NET}/${CIDR}"
+    else
+      # Hyper-scalers default to a CIDR of /32 which blocks any network traffic from others pods esp. from other nodes.
+      # /16 allows traffic from a sufficiently large network range from the kubernetes cluster, independently how the
+      # cluster is configured.
+      netmaskCidrValue="${NET}/16"
+    fi
+    echo "host    all             all             ${netmaskCidrValue}          password"
   done
 }
 
@@ -116,69 +129,74 @@ function setDoguLogLevel() {
   currentLogLevel=$(doguctl config --default "WARN" "logging/root")
 
   case "${currentLogLevel}" in
-    "ERROR")
-      export POSTGRESQL_LOGLEVEL="ERROR"
+  "ERROR")
+    export POSTGRESQL_LOGLEVEL="ERROR"
     ;;
-    "INFO")
-      export POSTGRESQL_LOGLEVEL="INFO"
+  "INFO")
+    export POSTGRESQL_LOGLEVEL="INFO"
     ;;
-    "DEBUG")
-      export POSTGRESQL_LOGLEVEL="DEBUG5"
+  "DEBUG")
+    export POSTGRESQL_LOGLEVEL="DEBUG5"
     ;;
-    *)
-      export POSTGRESQL_LOGLEVEL="WARNING"
+  *)
+    export POSTGRESQL_LOGLEVEL="WARNING"
     ;;
   esac
   # Remove old log level setting, if existent
   sed -i '/^log_min_messages/d' /var/lib/postgresql/postgresql.conf
   # Append new log level setting
-  echo "log_min_messages = ${POSTGRESQL_LOGLEVEL}" >> /var/lib/postgresql/postgresql.conf
+  echo "log_min_messages = ${POSTGRESQL_LOGLEVEL}" >>/var/lib/postgresql/postgresql.conf
 }
 
+function runMain() {
+  chown -R postgres "$PGDATA"
 
+  # create /run/postgresql, if not existent
+  mkdir -p /run/postgresql
+  chown postgres:postgres /run/postgresql
 
-chown -R postgres "$PGDATA"
+  if [ -z "$(ls -A "$PGDATA")" ]; then
+    initializePostgreSQL
+    write_pg_hba_conf
+  elif [ -e "${PGDATA}"/postgresqlFullBackup.dump ]; then
+    # Moving backup and emptying PGDATA directory
+    mv "${PGDATA}"/postgresqlFullBackup.dump /tmp/postgresqlFullBackup.dump
+    # New PostgreSQL version requires completely empty folder
 
-# create /run/postgresql, if not existent
-mkdir -p /run/postgresql
-chown postgres:postgres /run/postgresql
+    rm -rf "${PGDATA:?}"/.??*
+    rm -rf "${PGDATA:?}"/*
 
-if [ -z "$(ls -A "$PGDATA")" ]; then
-  initializePostgreSQL
-  write_pg_hba_conf
-elif [ -e "${PGDATA}"/postgresqlFullBackup.dump ]; then
-  # Moving backup and emptying PGDATA directory
-  mv "${PGDATA}"/postgresqlFullBackup.dump /tmp/postgresqlFullBackup.dump
-  # New PostgreSQL version requires completely empty folder
+    initializePostgreSQL
 
-  rm -rf "${PGDATA:?}"/.??*
-  rm -rf "${PGDATA:?}"/*
+    echo "Restoring database dump..."
+    # Start postgres to restore backup
+    gosu postgres postgres &
+    PID=$!
+    waitForPostgreSQLStartup
+    # Restore backup
+    psql -U postgres -f /tmp/postgresqlFullBackup.dump postgres
+    rm /tmp/postgresqlFullBackup.dump
+    # Kill postgres
+    pkill -P ${PID}
+    kill ${PID}
+    waitForPostgreSQLShutdown
+    echo "Database dump successfully restored"
 
-  initializePostgreSQL
+    write_pg_hba_conf
+  else
+    write_pg_hba_conf
+  fi
 
-  echo "Restoring database dump..."
-  # Start postgres to restore backup
-  gosu postgres postgres &
-  PID=$!
-  waitForPostgreSQLStartup
-  # Restore backup
-  psql -U postgres -f /tmp/postgresqlFullBackup.dump postgres
-  rm /tmp/postgresqlFullBackup.dump
-  # Kill postgres
-  pkill -P ${PID}
-  kill ${PID}
-  waitForPostgreSQLShutdown
-  echo "Database dump successfully restored"
+  setDoguLogLevel
 
-  write_pg_hba_conf
-else
-  write_pg_hba_conf
+  # set stage for health check
+  doguctl state ready
+
+  # start database
+  exec gosu postgres postgres
+}
+
+# make the script only run when executed, not when sourced from bats tests
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  runMain
 fi
-
-setDoguLogLevel
-
-# set stage for health check
-doguctl state ready
-
-# start database
-exec gosu postgres postgres

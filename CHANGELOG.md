@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v12.15-2] - 2023-06-27
+### Added
+- [#24] Configuration options for resource requirements
+- [#24] Defaults for CPU and memory requests
+
 ## [v12.15-1] - 2023-06-13
 ### Fixed
 - [#22] Allow connections from all nodes of a cluster (cidr /16) in kubernetes environments.

@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Changed
 - [#26] Update postgresql to v12.18
+- Update Makefiles to 9.0.1
 
 ### Fixed
 - [#26] Fix [CVE-2024-0985](https://www.postgresql.org/support/security/CVE-2024-0985/)

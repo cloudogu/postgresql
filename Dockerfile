@@ -23,7 +23,7 @@ LABEL NAME="official/postgresql" \
 
 ENV LANG=en_US.utf8 \
     PGDATA=/var/lib/postgresql \
-    POSTGRESQL_VERSION=12.15-r0
+    POSTGRESQL_VERSION=12.18-r0
 
 # install postgresql and gosu
 # Note: the current postgresql version from alpine is installed

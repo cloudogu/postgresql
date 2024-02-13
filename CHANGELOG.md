@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- [#26] Update postgresql to v12.18
+
+### Fixed
+- [#26] Fix [CVE-2024-0985](https://www.postgresql.org/support/security/CVE-2024-0985/)
 
 ## [v12.15-2] - 2023-06-27
 ### Added

@@ -1,4 +1,4 @@
-FROM registry.cloudogu.com/official/base:3.17.3-2 as builder
+FROM registry.cloudogu.com/official/base:3.18.7-2 as builder
 
 ENV GOSU_SHA256=0f25a21cf64e58078057adc78f38705163c1d564a959ff30a891c31917011a54
 
@@ -15,15 +15,15 @@ RUN set -x -o errexit \
  && echo "${GOSU_SHA256} */build/usr/local/bin/gosu" | sha256sum -c - \
  && chmod +x /build/usr/local/bin/gosu
 
-FROM registry.cloudogu.com/official/base:3.17.3-2
+FROM registry.cloudogu.com/official/base:3.18.7-2
 
 LABEL NAME="official/postgresql" \
-        VERSION="12.18-1" \
+        VERSION="12.18-2" \
         maintainer="hello@cloudogu.com"
 
 ENV LANG=en_US.utf8 \
     PGDATA=/var/lib/postgresql \
-    POSTGRESQL_VERSION=12.18-r0
+    POSTGRESQL_VERSION=12.19-r0
 
 # install postgresql and gosu
 # Note: the current postgresql version from alpine is installed

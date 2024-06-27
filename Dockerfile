@@ -15,7 +15,7 @@ RUN set -x -o errexit \
  && echo "${GOSU_SHA256} */build/usr/local/bin/gosu" | sha256sum -c - \
  && chmod +x /build/usr/local/bin/gosu
 
-FROM registry.cloudogu.com/official/base:3.18.7-1
+FROM registry.cloudogu.com/official/base:3.18.7-2
 
 LABEL NAME="official/postgresql" \
         VERSION="12.18-1" \

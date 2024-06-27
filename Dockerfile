@@ -1,4 +1,4 @@
-FROM registry.cloudogu.com/official/base:3.18.7-1 as builder
+FROM registry.cloudogu.com/official/base:3.18.7-2 as builder
 
 ENV GOSU_SHA256=0f25a21cf64e58078057adc78f38705163c1d564a959ff30a891c31917011a54
 

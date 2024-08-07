@@ -1,4 +1,4 @@
-FROM registry.cloudogu.com/official/base:3.18.7-2 as builder
+FROM registry.cloudogu.com/official/base:3.18.8-1 as builder
 
 ENV GOSU_SHA256=0f25a21cf64e58078057adc78f38705163c1d564a959ff30a891c31917011a54
 
@@ -15,7 +15,7 @@ RUN set -x -o errexit \
  && echo "${GOSU_SHA256} */build/usr/local/bin/gosu" | sha256sum -c - \
  && chmod +x /build/usr/local/bin/gosu
 
-FROM registry.cloudogu.com/official/base:3.18.7-2
+FROM registry.cloudogu.com/official/base:3.18.8-1
 
 LABEL NAME="official/postgresql" \
         VERSION="12.18-2" \

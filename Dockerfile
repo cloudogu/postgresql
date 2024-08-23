@@ -23,7 +23,7 @@ LABEL NAME="official/postgresql" \
 
 ENV LANG=en_US.utf8 \
     PGDATA=/var/lib/postgresql \
-    POSTGRESQL_VERSION=12.19-r0
+    POSTGRESQL_VERSION=14.12-r0
 
 # install postgresql and gosu
 # Note: the current postgresql version from alpine is installed
@@ -33,7 +33,7 @@ RUN set -x -o errexit \
  && set -o pipefail \
  && apk update \
  && apk upgrade \
- && apk add --no-cache --update postgresql12="${POSTGRESQL_VERSION}"
+ && apk add --no-cache --update postgresql14="${POSTGRESQL_VERSION}"
 
 COPY resources/ /
 COPY --from=builder /build /

@@ -1,6 +1,6 @@
 FROM registry.cloudogu.com/official/base:3.20.2-1 as builder
 
-ENV GOSU_SHA256=0f25a21cf64e58078057adc78f38705163c1d564a959ff30a891c31917011a54
+ENV GOSU_SHA256=bbc4136d03ab138b1ad66fa4fc051bafc6cc7ffae632b069a53657279a450de3
 
 WORKDIR /build
 
@@ -11,7 +11,7 @@ RUN set -x -o errexit \
  && apk upgrade \
  && apk add wget \
  && mkdir -p /build/usr/local/bin \
- && wget --progress=bar:force:noscroll -O /build/usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/1.12/gosu-amd64" \
+ && wget --progress=bar:force:noscroll -O /build/usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/1.17/gosu-amd64" \
  && echo "${GOSU_SHA256} */build/usr/local/bin/gosu" | sha256sum -c - \
  && chmod +x /build/usr/local/bin/gosu
 

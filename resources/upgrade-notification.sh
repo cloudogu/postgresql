@@ -8,8 +8,8 @@ TO_VERSION="${2}"
 FROM_MAJOR_VERSION=$(echo "${FROM_VERSION}" | cut -d '.' -f1)
 TO_MAJOR_VERSION=$(echo "${TO_VERSION}" | cut -d '.' -f1)
 
-# print major upgrade notification if TO_MAJOR_VERSION is equal or higher than 12 and FROM_MAJOR_VERSION is lower than 12
-if [[ "${TO_MAJOR_VERSION}" -ge 12 ]] && [[ "${FROM_MAJOR_VERSION}" -lt 12 ]]; then
+# print major upgrade notification if TO_MAJOR_VERSION is higher than FROM_MAJOR_VERSION
+if [[ "${TO_MAJOR_VERSION}" -gt "${FROM_MAJOR_VERSION}" ]]; then
     printf "You are starting a major upgrade of the PostgreSQL dogu (from %s to %s)!\\n" "${FROM_VERSION}" "${TO_VERSION}"
     echo "Please consider a backup before doing so, e.g. via the Backup dogu!"
     echo "During the upgrade process a full database dump will be created."

@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Changed
 - [#32] Update postgresql to v14.12
+- [#32] Upgrade base image to 3.20.2-1
 
 ## [v12.18-3] - 2024-08-07
 ### Changed

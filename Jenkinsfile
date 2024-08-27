@@ -49,6 +49,7 @@ node('vagrant') {
         ])
 
         EcoSystem ecoSystem = new EcoSystem(this, 'gcloud-ces-operations-internal-packer', 'jenkins-gcloud-ces-operations-internal')
+        Trivy trivy = new Trivy(this, ecoSystem)
 
         try {
             stage('Provision') {
@@ -69,6 +70,12 @@ node('vagrant') {
 
             stage('Build') {
                 ecoSystem.build(doguDirectory)
+            }
+
+            stage('Trivy scan') {
+                trivy.scanDogu("/dogu", TrivyScanFormat.HTML, TrivyScanLevel.CRITICAL, TrivyScanStrategy.UNSTABLE)
+                trivy.scanDogu("/dogu", TrivyScanFormat.JSON, TrivyScanLevel.CRITICAL, TrivyScanStrategy.UNSTABLE)
+                trivy.scanDogu("/dogu", TrivyScanFormat.PLAIN, TrivyScanLevel.CRITICAL, TrivyScanStrategy.UNSTABLE)
             }
 
             stage('Verify') {

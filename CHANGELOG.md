@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v14.12-1] - 2024-08-28
+### Changed
+- [#32] Update postgresql to v14.12
+- [#32] Update base image to 3.20.2-1
+- [#32] Update gosu to 1.17
+
 ## [v12.19-1] - 2024-08-28
 ### Fixed
 - Re-release of v12.18-3

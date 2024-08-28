@@ -123,7 +123,7 @@ function waitForPostgreSQLShutdown() {
   done
 }
 
-# See https://www.postgresql.org/docs/12/runtime-config-logging.html
+# See https://www.postgresql.org/docs/14/runtime-config-logging.html
 function setDoguLogLevel() {
   echo "Mapping dogu specific log level..."
   currentLogLevel=$(doguctl config --default "WARN" "logging/root")

@@ -1,6 +1,6 @@
-FROM registry.cloudogu.com/official/base:3.18.8-1 as builder
+FROM registry.cloudogu.com/official/base:3.20.2-1 as builder
 
-ENV GOSU_SHA256=0f25a21cf64e58078057adc78f38705163c1d564a959ff30a891c31917011a54
+ENV GOSU_SHA256=bbc4136d03ab138b1ad66fa4fc051bafc6cc7ffae632b069a53657279a450de3
 
 WORKDIR /build
 
@@ -11,11 +11,11 @@ RUN set -x -o errexit \
  && apk upgrade \
  && apk add wget \
  && mkdir -p /build/usr/local/bin \
- && wget --progress=bar:force:noscroll -O /build/usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/1.12/gosu-amd64" \
+ && wget --progress=bar:force:noscroll -O /build/usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/1.17/gosu-amd64" \
  && echo "${GOSU_SHA256} */build/usr/local/bin/gosu" | sha256sum -c - \
  && chmod +x /build/usr/local/bin/gosu
 
-FROM registry.cloudogu.com/official/base:3.18.8-1
+FROM registry.cloudogu.com/official/base:3.20.2-1
 
 LABEL NAME="official/postgresql" \
         VERSION="12.19-1" \
@@ -23,7 +23,7 @@ LABEL NAME="official/postgresql" \
 
 ENV LANG=en_US.utf8 \
     PGDATA=/var/lib/postgresql \
-    POSTGRESQL_VERSION=12.19-r0
+    POSTGRESQL_VERSION=14.12-r0
 
 # install postgresql and gosu
 # Note: the current postgresql version from alpine is installed
@@ -33,7 +33,7 @@ RUN set -x -o errexit \
  && set -o pipefail \
  && apk update \
  && apk upgrade \
- && apk add --no-cache --update postgresql12="${POSTGRESQL_VERSION}"
+ && apk add --no-cache --update postgresql14="${POSTGRESQL_VERSION}"
 
 COPY resources/ /
 COPY --from=builder /build /

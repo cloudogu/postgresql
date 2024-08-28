@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v12.19-1] - 2024-08-28
+### Fixed
+- Re-release of v12.18-3
+  - v12.18-3 used postgres package 12.19-r0
+
 ## [v12.18-3] - 2024-08-07
 ### Changed
 - [#30] Upgrade base image to 3.18.8-1

@@ -1,6 +1,6 @@
 {
   "Name": "official/postgresql",
-  "Version": "14.12-1",
+  "Version": "14.12-2",
   "DisplayName": "PostgreSQL",
   "Description": "PostgreSQL Database.",
   "Url": "https://www.postgresql.org/",
@@ -15,6 +15,13 @@
     {
       "Name": "data",
       "Path": "/var/lib/postgresql",
+      "Owner": "1000",
+      "Group": "1000",
+      "NeedsBackup": true
+    },
+    {
+      "Name": "localConfig",
+      "Path": "/var/ces/config",
       "Owner": "1000",
       "Group": "1000",
       "NeedsBackup": true

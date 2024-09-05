@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v14.12-2] - 2024-09-05
+### Fixed
+- [#34] Add missing local-config volume
+
 ## [v14.12-1] - 2024-08-28
 ### Changed
 - [#32] Update postgresql to v14.12

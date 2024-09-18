@@ -18,7 +18,7 @@ RUN set -x -o errexit \
 FROM registry.cloudogu.com/official/base:3.20.2-1
 
 LABEL NAME="official/postgresql" \
-        VERSION="14.12-2" \
+        VERSION="14.22-3" \
         maintainer="hello@cloudogu.com"
 
 ENV LANG=en_US.utf8 \

@@ -25,15 +25,12 @@ ENV LANG=en_US.utf8 \
     PGDATA=/var/lib/postgresql \
     POSTGRESQL_VERSION=14.12-r0
 
-# install postgresql and gosu
-# Note: the current postgresql version from alpine is installed
-# https://pkgs.alpinelinux.org/packages?name=postgresql&branch=v3.12&arch=x86_64
 RUN set -x -o errexit \
  && set -o nounset \
  && set -o pipefail \
  && apk update \
  && apk upgrade \
- && apk add --no-cache --update postgresql14="${POSTGRESQL_VERSION}"
+ && apk add --no-cache --update postgresql14="${POSTGRESQL_VERSION}" postgresql14-contrib="${POSTGRESQL_VERSION}"
 
 COPY resources/ /
 COPY --from=builder /build /

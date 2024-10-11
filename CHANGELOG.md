@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v14.12-4] - 2024-10-11
+### Added
+- [#38] Extensions from `postgresql-contrib`
+
 ## [v14.12-3] - 2024-09-23
 ### Changed
 - Relicense to AGPL-3.0-only

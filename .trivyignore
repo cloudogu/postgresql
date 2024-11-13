@@ -1,0 +1,7 @@
+// The following CVEs are reported by the trivy scan of the gosu library
+// gosu explicitly states to use their own vulnerability checker which is based on govulncheck
+// see https://github.com/tianon/gosu/blob/master/SECURITY.md
+// govulncheck does not report these CVEs as actual vulnerabilities in gosu
+CVE-2023-24538
+CVE-2023-24540
+CVE-2024-24790

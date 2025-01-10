@@ -43,6 +43,10 @@
       "Command": "/pre-upgrade.sh"
     },
     {
+      "Name": "post-upgrade",
+      "Command": "/post-upgrade.sh"
+    },
+    {
       "Name": "backup-consumer",
       "Command": "/backup-consumer.sh"
     },

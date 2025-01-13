@@ -23,7 +23,7 @@ LABEL NAME="official/postgresql" \
 
 ENV LANG=en_US.utf8 \
     PGDATA=/var/lib/postgresql \
-    POSTGRESQL_VERSION=14.13-r0
+    POSTGRESQL_VERSION=14.15-r0
 
 RUN set -x -o errexit \
  && set -o nounset \

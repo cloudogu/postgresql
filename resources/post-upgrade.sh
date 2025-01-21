@@ -63,33 +63,55 @@ function versionXLessOrEqualThanY() {
   return 1
 }
 
-if versionXLessOrEqualThanY "0.14.13-1" "0.${TO_VERSION}" ; then
+# Postgres 14.14 fixed an issue with constraints on partitioned tables
+# If any partitioned tables have constraints on them, this migration removes and readds them
+if versionXLessOrEqualThanY "0.14.13-1" "0.${TO_VERSION}" && [[ $(doguctl config --default "false" migrated_database_constraints) != "true" ]] ; then
     while ! pg_isready >/dev/null; do
       # Postgres is not ready yet to accept connections
       sleep 0.1
     done
-    # https://www.postgresql.org/docs/14/release-14-14.html#:~:text=Fix%20updates%20of,perform%20each%20step.
-    QUERY="SELECT conrelid::pg_catalog.regclass AS \"constrained table\",
-                                      conname AS constraint,
-                                      confrelid::pg_catalog.regclass AS \"references\",
-                                      pg_catalog.format('ALTER TABLE %s DROP CONSTRAINT %I;',
-                                                        conrelid::pg_catalog.regclass, conname) AS \"drop\",
-                                      pg_catalog.format('ALTER TABLE %s ADD CONSTRAINT %I %s;',
-                                                        conrelid::pg_catalog.regclass, conname,
-                                                        pg_catalog.pg_get_constraintdef(oid)) AS \"add\"
-                               FROM pg_catalog.pg_constraint c
-                               WHERE contype = 'f' AND conparentid = 0 AND
-                                  (SELECT count(*) FROM pg_catalog.pg_constraint c2
-                                   WHERE c2.conparentid = c.oid) <>
-                                  (SELECT count(*) FROM pg_catalog.pg_inherits i
-                                   WHERE (i.inhparent = c.conrelid OR i.inhparent = c.confrelid) AND
-                                     EXISTS (SELECT 1 FROM pg_catalog.pg_partitioned_table
-                                             WHERE partrelid = i.inhparent));"
-    RESULT=$(psql -U postgres -c "${QUERY}" | wc -l)
-    if (($RESULT > 4)); then
-          echo "Found constraints on partitioned tables while performing the upgrade."
-          echo "Due to a bug in PostgresQL this could lead to corrupt data when the partitioned tables are reattached."
-          echo "A manual migration of these constraints is needed to avoid this issue."
-          echo "See constraint_migration.md for further information."
-    fi
+    # get all tables
+    psql -U postgres -c "SELECT d.datname as \"Name\" FROM pg_catalog.pg_database d;" -X > databases
+    # there are four lines of sql result information (two at the start, two at the end)
+    for i in $(seq 3 $(($(wc -l < databases) - 2 )));
+    do
+        DATABASE_NAME=$(sed "${i}!d" databases | xargs)
+        # skip postgres default tables
+        if [ "${DATABASE_NAME}" != "template0" ] && [ "${DATABASE_NAME}" != "template1" ] && [ "${DATABASE_NAME}" != "postgres" ]; then
+            # https://www.postgresql.org/docs/14/release-14-14.html#:~:text=Fix%20updates%20of,perform%20each%20step.
+            QUERY="SELECT conrelid::pg_catalog.regclass AS \"constrained table\",
+                                              conname AS constraint,
+                                              confrelid::pg_catalog.regclass AS \"references\",
+                                              pg_catalog.format('ALTER TABLE %s DROP CONSTRAINT %I;',
+                                                                conrelid::pg_catalog.regclass, conname) AS \"drop\",
+                                              pg_catalog.format('ALTER TABLE %s ADD CONSTRAINT %I %s;',
+                                                                conrelid::pg_catalog.regclass, conname,
+                                                                pg_catalog.pg_get_constraintdef(oid)) AS \"add\"
+                                       FROM pg_catalog.pg_constraint c
+                                       WHERE contype = 'f' AND conparentid = 0 AND
+                                          (SELECT count(*) FROM pg_catalog.pg_constraint c2
+                                           WHERE c2.conparentid = c.oid) <>
+                                          (SELECT count(*) FROM pg_catalog.pg_inherits i
+                                           WHERE (i.inhparent = c.conrelid OR i.inhparent = c.confrelid) AND
+                                             EXISTS (SELECT 1 FROM pg_catalog.pg_partitioned_table
+                                                     WHERE partrelid = i.inhparent));"
+            psql -U postgres -c "${QUERY}"  -d "${DATABASE_NAME}" > result_queries
+            # there are three lines of sql result information (two at the start, one at the end)
+            if (($(wc -l < result_queries) >= 4)); then
+                    echo "Found constraints on partitioned tables in database ${DATABASE_NAME} while performing the upgrade."
+                    echo "Migrating ${DATABASE_NAME} now"
+                    AMOUNT=$(wc -l < result_queries)
+                    for (( i = 3; i < ((AMOUNT - 1)); i++ )); do
+                        IFS='|' read -ra ADDR <<< "$(sed "$((i))q;d" result_queries)"
+                        echo "Migrating entry $((i - 2))/$(((AMOUNT - 4))) in table${ADDR[1]}"
+                        # drop constraint query
+                        psql -U postgres -c "${ADDR[3]}" -d "${DATABASE_NAME}" >> /dev/null
+                        # readd constraint query
+                        psql -U postgres -c "${ADDR[4]}" -d "${DATABASE_NAME}" >> /dev/null
+                    done
+            fi
+        fi
+    done
+    # set config key so migration is only done once
+    doguctl config migrated_database_constraints true
 fi

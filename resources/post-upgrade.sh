@@ -94,8 +94,8 @@ function migrateConstraintsOnPartitionedTables() {
                                              EXISTS (SELECT 1 FROM pg_catalog.pg_partitioned_table
                                                      WHERE partrelid = i.inhparent));"
             psql -U postgres -c "${QUERY}"  -d "${DATABASE_NAME}" > result_queries
-            # there are three lines of sql result information (two at the start, one at the end)
-            if (($(wc -l < result_queries) >= 4)); then
+            # Do not run migration if result is empty
+            if ! grep -q "0 rows" result_queries; then
                     echo "Found constraints on partitioned tables in database ${DATABASE_NAME} while performing the upgrade."
                     echo "Migrating ${DATABASE_NAME} now"
                     AMOUNT=$(wc -l < result_queries)
@@ -113,6 +113,7 @@ function migrateConstraintsOnPartitionedTables() {
     # set config key so migration is only done once
     doguctl config migrated_database_constraints true
 }
+migrateConstraintsOnPartitionedTables
 
 if versionXLessOrEqualThanY "0.14.15-1" "0.${TO_VERSION}" && [[ $(doguctl config --default "false" migrated_database_constraints) != "true" ]] ; then
     # Postgres 14.14 (Dogu Version 14.15.x) fixed an issue with constraints on partitioned tables

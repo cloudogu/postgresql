@@ -63,9 +63,7 @@ function versionXLessOrEqualThanY() {
   return 1
 }
 
-# Postgres 14.14 fixed an issue with constraints on partitioned tables
-# If any partitioned tables have constraints on them, this migration removes and readds them
-if versionXLessOrEqualThanY "0.14.13-1" "0.${TO_VERSION}" && [[ $(doguctl config --default "false" migrated_database_constraints) != "true" ]] ; then
+function migrateConstraintsOnPartitionedTables() {
     while ! pg_isready >/dev/null; do
       # Postgres is not ready yet to accept connections
       sleep 0.1
@@ -106,7 +104,7 @@ if versionXLessOrEqualThanY "0.14.13-1" "0.${TO_VERSION}" && [[ $(doguctl config
                         echo "Migrating entry $((i - 2))/$(((AMOUNT - 4))) in table${ADDR[1]}"
                         # drop constraint query
                         psql -U postgres -c "${ADDR[3]}" -d "${DATABASE_NAME}" >> /dev/null
-                        # readd constraint query
+                        # readd constraint querysql_queries_test
                         psql -U postgres -c "${ADDR[4]}" -d "${DATABASE_NAME}" >> /dev/null
                     done
             fi
@@ -114,4 +112,11 @@ if versionXLessOrEqualThanY "0.14.13-1" "0.${TO_VERSION}" && [[ $(doguctl config
     done
     # set config key so migration is only done once
     doguctl config migrated_database_constraints true
+}
+
+if versionXLessOrEqualThanY "0.14.15-1" "0.${TO_VERSION}" && [[ $(doguctl config --default "false" migrated_database_constraints) != "true" ]] ; then
+    # Postgres 14.14 (Dogu Version 14.15.x) fixed an issue with constraints on partitioned tables
+    # If any partitioned tables have constraints on them, this migration removes and readds them
+    migrateConstraintsOnPartitionedTables
 fi
+

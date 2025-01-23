@@ -1,5 +1,5 @@
 #!groovy
-@Library(['github.com/cloudogu/ces-build-lib@2.2.1', 'github.com/cloudogu/dogu-build-lib@v2.5.0'])
+@Library(['github.com/cloudogu/ces-build-lib@4.0.1', 'github.com/cloudogu/dogu-build-lib@v3.0.0'])
 import com.cloudogu.ces.cesbuildlib.*
 import com.cloudogu.ces.dogubuildlib.*
 
@@ -45,11 +45,13 @@ node('vagrant') {
             parameters([
                     booleanParam(defaultValue: false, description: 'Test dogu upgrade from latest release or optionally from defined version below', name: 'TestDoguUpgrade'),
                     string(defaultValue: '', description: 'Old Dogu version for the upgrade test (optional; e.g. 4.1.0-3)', name: 'OldDoguVersionForUpgradeTest'),
+                    booleanParam(defaultValue: true, description: 'Enables cypress to take screenshots of failing integration tests.', name: 'EnableScreenshotRecording'),
+                    choice(name: 'TrivySeverityLevels', choices: [TrivySeverityLevel.CRITICAL, TrivySeverityLevel.HIGH_AND_ABOVE, TrivySeverityLevel.MEDIUM_AND_ABOVE, TrivySeverityLevel.ALL], description: 'The levels to scan with trivy', defaultValue: TrivySeverityLevel.CRITICAL),
+                    choice(name: 'TrivyStrategy', choices: [TrivyScanStrategy.UNSTABLE, TrivyScanStrategy.FAIL, TrivyScanStrategy.IGNORE], description: 'Define whether the build should be unstable, fail or whether the error should be ignored if any vulnerability was found.', defaultValue: TrivyScanStrategy.UNSTABLE),
             ])
         ])
 
         EcoSystem ecoSystem = new EcoSystem(this, 'gcloud-ces-operations-internal-packer', 'jenkins-gcloud-ces-operations-internal')
-        Trivy trivy = new Trivy(this, ecoSystem)
 
         try {
             stage('Provision') {
@@ -69,13 +71,20 @@ node('vagrant') {
             }
 
             stage('Build') {
+                // change namespace to prerelease_namespace if in develop-branch
+                if (gitflow.isPreReleaseBranch()) {
+                    ecoSystem.vagrant.ssh "cd /dogu && make prerelease_namespace"
+                }
                 ecoSystem.build(doguDirectory)
             }
 
             stage('Trivy scan') {
-                trivy.scanDogu("/dogu", TrivyScanFormat.HTML, TrivyScanLevel.CRITICAL, TrivyScanStrategy.UNSTABLE)
-                trivy.scanDogu("/dogu", TrivyScanFormat.JSON, TrivyScanLevel.CRITICAL, TrivyScanStrategy.UNSTABLE)
-                trivy.scanDogu("/dogu", TrivyScanFormat.PLAIN, TrivyScanLevel.CRITICAL, TrivyScanStrategy.UNSTABLE)
+                ecoSystem.copyDoguImageToJenkinsWorker("/dogu")
+                Trivy trivy = new Trivy(this)
+                trivy.scanDogu(".", params.TrivySeverityLevels, params.TrivyStrategy)
+                trivy.saveFormattedTrivyReport(TrivyScanFormat.TABLE)
+                trivy.saveFormattedTrivyReport(TrivyScanFormat.JSON)
+                trivy.saveFormattedTrivyReport(TrivyScanFormat.HTML)
             }
 
             stage('Verify') {
@@ -93,21 +102,22 @@ node('vagrant') {
             }
 
             if (gitflow.isReleaseBranch()) {
-                String releaseVersion = git.getSimpleBranchName()
-
+                String releaseVersion = git.getSimpleBranchName();
                 stage('Finish Release') {
                     gitflow.finishRelease(releaseVersion)
                 }
-
                 stage('Push Dogu to registry') {
-                    ecoSystem.push(doguDirectory)
+                    ecoSystem.push("/dogu")
                 }
-
-                stage ('Add Github-Release') {
+                stage('Add Github-Release') {
                     github.createReleaseWithChangelog(releaseVersion, changelog)
                 }
+            } else if (gitflow.isPreReleaseBranch()) {
+                // push to registry in prerelease_namespace
+                stage('Push Prerelease Dogu to registry') {
+                    ecoSystem.pushPreRelease("/dogu")
+                }
             }
-
         } finally {
             stage('Clean') {
                 ecoSystem.destroy()

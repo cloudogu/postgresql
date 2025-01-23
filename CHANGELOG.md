@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v14.15-1] - 2025-01-23
+### Changed 
+- [#42] Update Makefiles to 9.5.0
+- [#42] Update postgresql to 14.15
+- [#42] Add migration checker to post-upgrade.sh
+  - The migration checker fixes potentially corrupt data in postgres, due to bugfixes in postgres itself
+
 ## [v14.13-1] - 2024-11-13
 ### Changed
 - [#40] Update postgresql to v14.13

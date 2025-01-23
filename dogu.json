@@ -1,6 +1,6 @@
 {
   "Name": "official/postgresql",
-  "Version": "14.13-1",
+  "Version": "14.15-1",
   "DisplayName": "PostgreSQL",
   "Description": "PostgreSQL Database.",
   "Url": "https://www.postgresql.org/",
@@ -41,6 +41,10 @@
     {
       "Name": "pre-upgrade",
       "Command": "/pre-upgrade.sh"
+    },
+    {
+      "Name": "post-upgrade",
+      "Command": "/post-upgrade.sh"
     },
     {
       "Name": "backup-consumer",

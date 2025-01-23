@@ -103,23 +103,21 @@ node('vagrant') {
             }
 
             if (gitflow.isReleaseBranch()) {
-                String releaseVersion = git.getSimpleBranchName()
-
+                String releaseVersion = git.getSimpleBranchName();
                 stage('Finish Release') {
                     gitflow.finishRelease(releaseVersion)
                 }
-
                 stage('Push Dogu to registry') {
-                    ecoSystem.push(doguDirectory)
+                    ecoSystem.push("/dogu")
                 }
-
-                stage ('Add Github-Release') {
+                stage('Add Github-Release') {
                     github.createReleaseWithChangelog(releaseVersion, changelog)
                 }
             } else if (gitflow.isPreReleaseBranch()) {
-                 // push to registry in prerelease_namespace
-                 stage('Push Prerelease Dogu to registry') {
-                     ecoSystem.pushPreRelease("/dogu")
+                // push to registry in prerelease_namespace
+                stage('Push Prerelease Dogu to registry') {
+                    ecoSystem.pushPreRelease("/dogu")
+                }
             }
         } finally {
             stage('Clean') {

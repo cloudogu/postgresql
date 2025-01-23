@@ -115,13 +115,12 @@ node('vagrant') {
 
                 stage ('Add Github-Release') {
                     github.createReleaseWithChangelog(releaseVersion, changelog)
-                } else if (gitflow.isPreReleaseBranch()) {
-                    // push to registry in prerelease_namespace
-                    stage('Push Prerelease Dogu to registry') {
-                        ecoSystem.pushPreRelease("/dogu")
                 }
+            } else if (gitflow.isPreReleaseBranch()) {
+                 // push to registry in prerelease_namespace
+                 stage('Push Prerelease Dogu to registry') {
+                     ecoSystem.pushPreRelease("/dogu")
             }
-
         } finally {
             stage('Clean') {
                 ecoSystem.destroy()

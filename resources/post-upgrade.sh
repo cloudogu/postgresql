@@ -149,6 +149,13 @@ function reindexAllDatabases() {
     reindexdb -U postgres --verbose --all
 }
 
+if [[ $(doguctl config --default "false" restricted_stat_visibility) != "true" ]] ; then
+    # Postgres 14.12 (Dogu Version 14.15-2) fixed an issue with the visibility of hidden statistics
+    # since this fix comes after the version was released, always execute it if it was not executed before
+    echo "Postgresql stats might be visible outside of their intended scope. Restricting stat visibility..."
+    restrictStatVisibility
+fi
+
 if [ "${FROM_VERSION}" = "${TO_VERSION}" ]; then
     echo "FROM and TO versions are the same; Exiting..."
     exit 0
@@ -161,11 +168,4 @@ if versionXLessOrEqualThanY "0.14.15-1" "0.${TO_VERSION}" && [[ $(doguctl config
     # Postgres 14.14 (Dogu Version 14.15.x) fixed an issue with constraints on partitioned tables
     # If any partitioned tables have constraints on them, this migration removes and readds them
     migrateConstraintsOnPartitionedTables
-fi
-
-if [[ $(doguctl config --default "false" restricted_stat_visibility) != "true" ]] ; then
-    # Postgres 14.12 (Dogu Version 14.15-2) fixed an issue with the visibility of hidden statistics
-    # since this fix comes after the version was released, always execute it if it was not executed before
-    echo "Postgresql stats might be visible outside of their intended scope. Restricting stat visibility..."
-    restrictStatVisibility
 fi

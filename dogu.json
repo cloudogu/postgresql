@@ -1,6 +1,6 @@
 {
   "Name": "official/postgresql",
-  "Version": "14.15-1",
+  "Version": "14.16-0",
   "DisplayName": "PostgreSQL",
   "Description": "PostgreSQL Database.",
   "Url": "https://www.postgresql.org/",

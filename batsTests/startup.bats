@@ -13,30 +13,29 @@ setup() {
   export STARTUP_DIR=/workspace/resources
   export WORKDIR=/workspace
   netstat="$(mock_create)"
+  doguctl="$(mock_create)"
   export netstat
+  export doguctl
   export PATH="${BATS_TMPDIR}:${PATH}"
   ln -s "${netstat}" "${BATS_TMPDIR}/netstat"
+  ln -s "${doguctl}" "${BATS_TMPDIR}/doguctl"
 }
 
 teardown() {
   unset STARTUP_DIR
   unset WORKDIR
   rm "${BATS_TMPDIR}/netstat"
+  rm "${BATS_TMPDIR}/doguctl"
 }
 
-@test "create_hba() should use cidr 16 if the dogu is running in a k8s cluster" {
-  mock_set_output "${netstat}" "Kernel-IP-Routentabelle
-Ziel            Router          Genmask         Flags   MSS Fenster irtt Iface
-192.168.179.0   0.0.0.0         255.255.255.0   U         0 0          0 wlp0s20f3"
-
+@test "create_hba() should accept all if the dogu is running in a k8s cluster" {
   source /workspace/resources/startup.sh
-  local POD_NAMESPACE
-  export POD_NAMESPACE="ecosystem"
+  mock_set_output "${doguctl}" "true"
 
   run create_hba
 
   assert_success
-  assert_equal "$(mock_get_call_num "${netstat}")" "1"
+  assert_equal "$(mock_get_call_num "${doguctl}")" "1"
   assert_line '# generated, do not override'
   assert_line '# "local" is for Unix domain socket connections only'
   assert_line 'local   all             all                                     trust'
@@ -45,10 +44,11 @@ Ziel            Router          Genmask         Flags   MSS Fenster irtt Iface
   assert_line '# IPv6 local connections:'
   assert_line 'host    all             all             ::1/128                 trust'
   assert_line '# container networks'
-  assert_line "host    all             all             192.168.179.0/16          password"
+  assert_line "host    all             all             all          password"
 }
 
 @test "create_hba() should use regular cidr if the dogu is not running in a k8s cluster" {
+  mock_set_output "${doguctl}" "false"
   mock_set_output "${netstat}" "Kernel-IP-Routentabelle
 Ziel            Router          Genmask         Flags   MSS Fenster irtt Iface
 192.168.179.0   0.0.0.0         255.255.255.0   U         0 0          0 wlp0s20f3"
@@ -59,6 +59,7 @@ Ziel            Router          Genmask         Flags   MSS Fenster irtt Iface
 
   assert_success
   assert_equal "$(mock_get_call_num "${netstat}")" "1"
+  assert_equal "$(mock_get_call_num "${doguctl}")" "1"
   assert_line '# generated, do not override'
   assert_line '# "local" is for Unix domain socket connections only'
   assert_line 'local   all             all                                     trust'

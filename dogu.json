@@ -1,6 +1,6 @@
 {
-  "Name": "testing/postgresql",
-  "Version": "14.15-2",
+  "Name": "official/postgresql",
+  "Version": "14.15-1",
   "DisplayName": "PostgreSQL",
   "Description": "PostgreSQL Database.",
   "Url": "https://www.postgresql.org/",
@@ -10,7 +10,7 @@
     "db"
   ],
   "Logo": "https://cloudogu.com/images/dogus/postgresql.png",
-  "Image": "registry.cloudogu.com/testing/postgresql",
+  "Image": "registry.cloudogu.com/official/postgresql",
   "Volumes": [
     {
       "Name": "data",

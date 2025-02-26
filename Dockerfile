@@ -1,4 +1,4 @@
-FROM registry.cloudogu.com/official/base:3.21.0-1 as builder
+FROM registry.cloudogu.com/official/base:3.21.0-1 AS builder
 
 ENV GOSU_SHA256=bbc4136d03ab138b1ad66fa4fc051bafc6cc7ffae632b069a53657279a450de3
 
@@ -23,7 +23,7 @@ LABEL NAME="official/postgresql" \
 
 ENV LANG=en_US.utf8 \
     PGDATA=/var/lib/postgresql \
-    POSTGRESQL_VERSION=14.16-r0
+    POSTGRESQL_VERSION=14.17-r0
 
 RUN set -x -o errexit \
  && set -o nounset \

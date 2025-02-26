@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#46] Update postgresql to 14.17
 - [#46] Update Makefiles to 9.6.0
 
+## [v14.15-2] - 2025-02-21
+### Changed
+- [#47] Do not restrict access via `pg_hba.conf` in multinode anymore because network policies do that.
+
 ## [v14.15-1] - 2025-01-23
 ### Changed 
 - [#42] Update Makefiles to 9.5.0

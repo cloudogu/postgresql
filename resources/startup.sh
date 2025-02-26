@@ -58,25 +58,19 @@ function create_hba() {
   echo '# IPv6 local connections:'
   echo 'host    all             all             ::1/128                 trust'
   echo '# container networks'
-  for NETWITHMASK in $(netstat -nr | tail -n +3 | grep -v '^0' | awk '{print $1"/"$3}'); do
-    local NET
-    NET=$(echo "${NETWITHMASK}" | awk -F'/' '{print $1}')
-    local MASK
-    MASK=$(echo "${NETWITHMASK}" | awk -F'/' '{print $2}')
-    local CIDR
-    CIDR=$(mask2cidr "$MASK")
-    local isNotRunningUnderK8s="${POD_NAMESPACE:-"not running k8s"}"
-    local netmaskCidrValue
-    if [ "${isNotRunningUnderK8s}" == "not running k8s" ]; then
-      netmaskCidrValue="${NET}/${CIDR}"
-    else
-      # Hyper-scalers default to a CIDR of /32 which blocks any network traffic from others pods esp. from other nodes.
-      # /16 allows traffic from a sufficiently large network range from the kubernetes cluster, independently how the
-      # cluster is configured.
-      netmaskCidrValue="${NET}/16"
-    fi
-    echo "host    all             all             ${netmaskCidrValue}          password"
-  done
+  if [[ "$(doguctl multinode)" = "false" ]]; then
+    for NETWITHMASK in $(netstat -nr | tail -n +3 | grep -v '^0' | awk '{print $1"/"$3}'); do
+      local NET
+      NET=$(echo "${NETWITHMASK}" | awk -F'/' '{print $1}')
+      local MASK
+      MASK=$(echo "${NETWITHMASK}" | awk -F'/' '{print $2}')
+      local CIDR
+      CIDR=$(mask2cidr "$MASK")
+      echo "host    all             all             ${NET}/${CIDR}          password"
+    done
+  else
+    echo "host    all             all             all          password"
+  fi
 }
 
 function write_pg_hba_conf() {

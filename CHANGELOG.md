@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+- [#46] Update postgresql to 14.17
+- [#46] Update Makefiles to 9.6.0
 
 ## [v14.15-2] - 2025-02-21
 ### Changed

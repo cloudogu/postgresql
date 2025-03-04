@@ -113,11 +113,59 @@ function migrateConstraintsOnPartitionedTables() {
     # set config key so migration is only done once
     doguctl config migrated_database_constraints true
 }
-migrateConstraintsOnPartitionedTables
+
+# see https://www.postgresql.org/docs/14/release-14-12.html#:~:text=Restrict%20visibility%20of,WITH%20ALLOW_CONNECTIONS%20false%3B for more information
+function restrictStatVisibility() {
+    if [ ! -f /usr/share/postgresql/fix-CVE-2024-4317.sql ]; then
+        return 0
+    fi
+
+    while ! pg_isready >/dev/null; do
+        # Postgres is not ready yet to accept connections
+        sleep 0.1
+    done
+    # temporarily accept connections on template0
+    psql -U postgres -c "ALTER DATABASE template0 WITH ALLOW_CONNECTIONS true;"
+
+    # get all tables
+    psql -U postgres -c "SELECT d.datname as \"Name\" FROM pg_catalog.pg_database d;" -X > databases
+    # there are four lines of sql result information (two at the start, two at the end)
+    for i in $(seq 3 $(($(wc -l < databases) - 2 ))); do
+        DATABASE_NAME=$(sed "${i}!d" databases | xargs)
+        psql -U postgres -d "${DATABASE_NAME}" -c "\i /usr/share/postgresql/fix-CVE-2024-4317.sql"
+    done
+
+    # disable connections on template0
+    psql -U postgres -c "ALTER DATABASE template0 WITH ALLOW_CONNECTIONS false;"
+
+    doguctl config restricted_stat_visibility true
+}
+
+function reindexAllDatabases() {
+    while ! pg_isready >/dev/null; do
+        # Postgres is not ready yet to accept connections
+        sleep 0.1
+    done
+    reindexdb -U postgres --verbose --all
+}
+
+if [[ $(doguctl config --default "false" restricted_stat_visibility) != "true" ]] ; then
+    # Postgres 14.12 (Dogu Version 14.15-2) fixed an issue with the visibility of hidden statistics
+    # since this fix comes after the version was released, always execute it if it was not executed before
+    echo "Postgresql stats might be visible outside of their intended scope. Restricting stat visibility..."
+    restrictStatVisibility
+fi
+
+if [ "${FROM_VERSION}" = "${TO_VERSION}" ]; then
+    echo "FROM and TO versions are the same; Exiting..."
+    exit 0
+else
+    echo "Postgresql version changed. Reindexing all databases..."
+    reindexAllDatabases
+fi
 
 if versionXLessOrEqualThanY "0.14.15-1" "0.${TO_VERSION}" && [[ $(doguctl config --default "false" migrated_database_constraints) != "true" ]] ; then
     # Postgres 14.14 (Dogu Version 14.15.x) fixed an issue with constraints on partitioned tables
     # If any partitioned tables have constraints on them, this migration removes and readds them
     migrateConstraintsOnPartitionedTables
 fi
-

@@ -18,12 +18,12 @@ RUN set -x -o errexit \
 FROM registry.cloudogu.com/official/base:3.21.0-1
 
 LABEL NAME="official/postgresql" \
-        VERSION="14.15-2" \
+        VERSION="14.17-1" \
         maintainer="hello@cloudogu.com"
 
 ENV LANG=en_US.utf8 \
     PGDATA=/var/lib/postgresql \
-    POSTGRESQL_VERSION=14.15-r0
+    POSTGRESQL_VERSION=14.17-r0
 
 RUN set -x -o errexit \
  && set -o nounset \

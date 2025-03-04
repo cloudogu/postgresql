@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v14.17-1] - 2025-03-04
+### Changed
+- [#44] Execute necessary migration for all databases in post-upgrade script
+
 ## [v14.15-2] - 2025-02-21
 ### Changed
 - [#47] Do not restrict access via `pg_hba.conf` in multinode anymore because network policies do that.

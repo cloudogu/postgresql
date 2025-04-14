@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- [#50] Set sensible resource requests and limits
+
 ## [v14.17-1] - 2025-03-04
 ### Changed
 - [#44] Execute necessary migration for all databases in post-upgrade script

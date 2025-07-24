@@ -34,7 +34,7 @@ $(BASH_SRC):
 ${BASH_TEST_REPORT_DIR}: $(TARGET_DIR)
 	@mkdir -p $(BASH_TEST_REPORT_DIR)
 
-unit-test-shell-ci: ${BINARY_YQ} $(BASH_SRC) $(BASH_TEST_REPORT_DIR) $(BATS_ASSERT) $(BATS_MOCK) $(BATS_SUPPORT) $(BATS_FILE)
+unit-test-shell-ci: $(BASH_SRC) $(BASH_TEST_REPORT_DIR) $(BATS_ASSERT) $(BATS_MOCK) $(BATS_SUPPORT) $(BATS_FILE)
 	@echo "Test shell units on CI server"
 	@make unit-test-shell-generic
 

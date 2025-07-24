@@ -14,3 +14,12 @@ if [[ "${TO_MAJOR_VERSION}" -gt "${FROM_MAJOR_VERSION}" ]]; then
     pg_dumpall -U postgres -f "${PGDATA}"/postgresqlFullBackup.dump
     echo "Finished dumping database"
 fi
+
+if [ "${FROM_VERSION}" = "${TO_VERSION}" ]; then
+  echo "FROM and TO versions are the same; Exiting..."
+  exit 0
+fi
+
+echo "Set registry flag so startup script waits for post-upgrade to finish..."
+doguctl config "local_state" "upgrading"
+

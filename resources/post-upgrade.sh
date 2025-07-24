@@ -217,7 +217,7 @@ fi
 
 killPostgresql
 
-echo "Set registry flag so startup script can start afterwards..."
+echo "Removing local_state registry flag so startup script can start afterwards..."
 doguctl config --rm "local_state"
 
 echo "Postgresql post-upgrade done"

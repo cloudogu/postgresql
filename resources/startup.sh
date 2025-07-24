@@ -3,6 +3,9 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
+# shellcheck disable=SC1091
+source "$(dirname "${BASH_SOURCE[0]}")/util.sh"
+
 function mask2cidr() {
   local storedIFS="${IFS}"
   NBITS=0
@@ -77,32 +80,6 @@ function write_pg_hba_conf() {
   create_hba >"${PGDATA}"/pg_hba.conf
 }
 
-function initializePostgreSQL() {
-  # set stage for health check
-  doguctl state installing
-
-  # install database
-  gosu postgres initdb
-
-  # postgres user
-  POSTGRES_USER="postgres"
-
-  # store the user
-  doguctl config user "${POSTGRES_USER}"
-
-  # create random password
-  POSTGRES_PASSWORD=$(doguctl random)
-
-  # store the password encrypted
-  doguctl config -e password "${POSTGRES_PASSWORD}"
-
-  # open port
-  sed -ri "s/^#(listen_addresses\s*=\s*)\S+/\1'*'/" "$PGDATA"/postgresql.conf
-
-  # set generated password
-  echo "ALTER USER ${POSTGRES_USER} WITH SUPERUSER PASSWORD '${POSTGRES_PASSWORD}';" | gosu 2>/dev/null 1>&2 postgres postgres --single -jE
-}
-
 function waitForPostgreSQLStartup() {
   while ! pg_isready >/dev/null; do
     # Postgres is not ready yet to accept connections
@@ -149,38 +126,17 @@ function runMain() {
   mkdir -p /run/postgresql
   chown postgres:postgres /run/postgresql
 
+  # check whether post-upgrade script is still running
+  while [[ "$(doguctl config "local_state" -d "empty")" == "upgrading" ]]; do
+    echo "Upgrade script is running. Waiting..."
+    sleep 3
+  done
+
   if [ -z "$(ls -A "$PGDATA")" ]; then
     initializePostgreSQL
-    write_pg_hba_conf
-  elif [ -e "${PGDATA}"/postgresqlFullBackup.dump ]; then
-    # Moving backup and emptying PGDATA directory
-    mv "${PGDATA}"/postgresqlFullBackup.dump /tmp/postgresqlFullBackup.dump
-    # New PostgreSQL version requires completely empty folder
-
-    rm -rf "${PGDATA:?}"/.??*
-    rm -rf "${PGDATA:?}"/*
-
-    initializePostgreSQL
-
-    echo "Restoring database dump..."
-    # Start postgres to restore backup
-    gosu postgres postgres &
-    PID=$!
-    waitForPostgreSQLStartup
-    # Restore backup
-    psql -U postgres -f /tmp/postgresqlFullBackup.dump postgres
-    rm /tmp/postgresqlFullBackup.dump
-    # Kill postgres
-    pkill -P ${PID}
-    kill ${PID}
-    waitForPostgreSQLShutdown
-    echo "Database dump successfully restored"
-
-    write_pg_hba_conf
-  else
-    write_pg_hba_conf
   fi
 
+  write_pg_hba_conf
   setDoguLogLevel
 
   # set stage for health check

@@ -67,25 +67,19 @@ function versionXLessOrEqualThanY() {
 }
 
 function migrateConstraintsOnPartitionedTables() {
-  echo "#######7.1"
     while ! pg_isready >/dev/null; do
       # Postgres is not ready yet to accept connections
-echo "#######7.2"
       sleep 0.1
     done
-    echo "#######7.3"
     # get all tables
     psql -U postgres -c "SELECT d.datname as \"Name\" FROM pg_catalog.pg_database d;" -X > databases
     # there are four lines of sql result information (two at the start, two at the end)
-    echo "#######7.4"
     for i in $(seq 3 $(($(wc -l < databases) - 2 )));
     do
-      echo "#######7.5"
         DATABASE_NAME=$(sed "${i}!d" databases | xargs)
         # skip postgres default tables
         if [ "${DATABASE_NAME}" != "template0" ] && [ "${DATABASE_NAME}" != "template1" ] && [ "${DATABASE_NAME}" != "postgres" ]; then
             # https://www.postgresql.org/docs/14/release-14-14.html#:~:text=Fix%20updates%20of,perform%20each%20step.
-           echo "#######7.6"
             QUERY="SELECT conrelid::pg_catalog.regclass AS \"constrained table\",
                                               conname AS constraint,
                                               confrelid::pg_catalog.regclass AS \"references\",
@@ -102,76 +96,57 @@ echo "#######7.2"
                                            WHERE (i.inhparent = c.conrelid OR i.inhparent = c.confrelid) AND
                                              EXISTS (SELECT 1 FROM pg_catalog.pg_partitioned_table
                                                      WHERE partrelid = i.inhparent));"
-             echo "#######7.7"
             psql -U postgres -c "${QUERY}"  -d "${DATABASE_NAME}" > result_queries
             # Do not run migration if result is empty
-            echo "#######7.7"
             if ! grep -q "0 rows" result_queries; then
-              echo "#######7.8"
                     echo "Found constraints on partitioned tables in database ${DATABASE_NAME} while performing the upgrade."
                     echo "Migrating ${DATABASE_NAME} now"
                     AMOUNT=$(wc -l < result_queries)
                     for (( i = 3; i < ((AMOUNT - 1)); i++ )); do
-                      echo "#######7.9"
                         IFS='|' read -ra ADDR <<< "$(sed "$((i))q;d" result_queries)"
                         echo "Migrating entry $((i - 2))/$(((AMOUNT - 4))) in table${ADDR[1]}"
                         # drop constraint query
                         psql -U postgres -c "${ADDR[3]}" -d "${DATABASE_NAME}" >> /dev/null
                         # readd constraint querysql_queries_test
-                        echo "#######7.10"
                         psql -U postgres -c "${ADDR[4]}" -d "${DATABASE_NAME}" >> /dev/null
                     done
             fi
         fi
     done
     # set config key so migration is only done once
-    echo "#######7.11"
     doguctl config migrated_database_constraints true
 }
 
 # see https://www.postgresql.org/docs/14/release-14-12.html#:~:text=Restrict%20visibility%20of,WITH%20ALLOW_CONNECTIONS%20false%3B for more information
 function restrictStatVisibility() {
-  echo "#######2.1"
     if [ ! -f /usr/share/postgresql/fix-CVE-2024-4317.sql ]; then
         return 0
     fi
 
-echo "#######2.2"
     while ! pg_isready >/dev/null; do
         # Postgres is not ready yet to accept connections
         sleep 0.1
     done
-    echo "#######2.3"
     # temporarily accept connections on template0
     psql -U postgres -c "ALTER DATABASE template0 WITH ALLOW_CONNECTIONS true;"
 
     # get all tables
-    echo "#######2.4"
     psql -U postgres -c "SELECT d.datname as \"Name\" FROM pg_catalog.pg_database d;" -X > databases
     # there are four lines of sql result information (two at the start, two at the end)
-    echo "#######2.5"
     for i in $(seq 3 $(($(wc -l < databases) - 2 ))); do
-      echo "#######2.6"
-      echo "####### i: ${i}"
         DATABASE_NAME=$(sed "${i}!d" databases | xargs)
-        echo "####### Database name: ${DATABASE_NAME}"
         psql -U postgres -d "${DATABASE_NAME}" -c "\i /usr/share/postgresql/fix-CVE-2024-4317.sql"
     done
-    echo "#######2.7"
     # disable connections on template0
     psql -U postgres -c "ALTER DATABASE template0 WITH ALLOW_CONNECTIONS false;"
-    echo "#######2.8"
     doguctl config restricted_stat_visibility true
 }
 
 function reindexAllDatabases() {
-    echo "#######5.1"
     while ! pg_isready >/dev/null; do
-      echo "#######5.2"
         # Postgres is not ready yet to accept connections
         sleep 0.1
     done
-    echo "#######5.3"
     reindexdb -U postgres --verbose --all
 }
 function startPostgresql() {
@@ -197,14 +172,13 @@ function killPostgresql() {
       echo "postgresql successfully killed"
 }
 
-echo "#######1"
 isBackupAvailable=false
 if [ -e "${PGDATA}"/postgresqlFullBackup.dump ]; then
     isBackupAvailable=true
     # Moving backup and emptying PGDATA directory
     mv "${PGDATA}"/postgresqlFullBackup.dump /tmp/postgresqlFullBackup.dump
-    # New PostgreSQL version requires completely empty folder
 
+    # New PostgreSQL version requires completely empty folder
     rm -rf "${PGDATA:?}"/.??*
     rm -rf "${PGDATA:?}"/*
 
@@ -224,32 +198,26 @@ if [[ $(doguctl config --default "false" restricted_stat_visibility) != "true" ]
     # Postgres 14.12 (Dogu Version 14.15-2) fixed an issue with the visibility of hidden statistics
     # since this fix comes after the version was released, always execute it if it was not executed before
     echo "Postgresql stats might be visible outside of their intended scope. Restricting stat visibility..."
-    echo "#######2"
     restrictStatVisibility
 fi
-echo "#######3"
 if [ "${FROM_VERSION}" = "${TO_VERSION}" ]; then
-    echo "#######4"
     echo "FROM and TO versions are the same; Exiting..."
     doguctl config --rm "local_state"
     exit 0
 else
-    echo "#######5"
     echo "Postgresql version changed. Reindexing all databases..."
     reindexAllDatabases
 fi
 
-echo "#######6"
 if versionXLessOrEqualThanY "0.14.15-1" "0.${TO_VERSION}" && [[ $(doguctl config --default "false" migrated_database_constraints) != "true" ]] ; then
     # Postgres 14.14 (Dogu Version 14.15.x) fixed an issue with constraints on partitioned tables
     # If any partitioned tables have constraints on them, this migration removes and readds them
-    echo "#######7"
     migrateConstraintsOnPartitionedTables
 fi
 
 killPostgresql
 
-echo "Set registry flag so startup script can start afterwards..."
+echo "Removing local_state registry flag so startup script can start afterwards..."
 doguctl config --rm "local_state"
 
 echo "Postgresql post-upgrade done"

@@ -134,29 +134,6 @@ function runMain() {
 
   if [ -z "$(ls -A "$PGDATA")" ]; then
     initializePostgreSQL
-#  elif [ -e "${PGDATA}"/postgresqlFullBackup.dump ]; then
-#    # Moving backup and emptying PGDATA directory
-#    mv "${PGDATA}"/postgresqlFullBackup.dump /tmp/postgresqlFullBackup.dump
-#    # New PostgreSQL version requires completely empty folder
-#
-#    rm -rf "${PGDATA:?}"/.??*
-#    rm -rf "${PGDATA:?}"/*
-#
-#    initializePostgreSQL
-#
-#    echo "Restoring database dump..."
-#    # Start postgres to restore backup
-#    gosu postgres postgres &
-#    PID=$!
-#    waitForPostgreSQLStartup
-#    # Restore backup
-#    psql -U postgres -f /tmp/postgresqlFullBackup.dump postgres
-#    rm /tmp/postgresqlFullBackup.dump
-#    # Kill postgres
-#    pkill -P ${PID}
-#    kill ${PID}
-#    waitForPostgreSQLShutdown
-#    echo "Database dump successfully restored"
   fi
 
   write_pg_hba_conf

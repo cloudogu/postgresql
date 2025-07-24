@@ -4,7 +4,7 @@ set -o nounset
 set -o pipefail
 
 # shellcheck disable=SC1091
-source util.sh
+source "$(dirname "${BASH_SOURCE[0]}")/util.sh"
 
 function mask2cidr() {
   local storedIFS="${IFS}"

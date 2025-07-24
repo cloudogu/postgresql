@@ -4,7 +4,7 @@ set -o nounset
 set -o pipefail
 
 # shellcheck disable=SC1091
-source util.sh
+source "$(dirname "${BASH_SOURCE[0]}")/util.sh"
 
 FROM_VERSION="${1}"
 TO_VERSION="${2}"
@@ -157,10 +157,10 @@ echo "#######2.2"
         echo "####### Database name: ${DATABASE_NAME}"
         psql -U postgres -d "${DATABASE_NAME}" -c "\i /usr/share/postgresql/fix-CVE-2024-4317.sql"
     done
-echo "#######2.7"
+    echo "#######2.7"
     # disable connections on template0
     psql -U postgres -c "ALTER DATABASE template0 WITH ALLOW_CONNECTIONS false;"
-echo "#######2.8"
+    echo "#######2.8"
     doguctl config restricted_stat_visibility true
 }
 
@@ -234,7 +234,7 @@ if [ "${FROM_VERSION}" = "${TO_VERSION}" ]; then
     doguctl config --rm "local_state"
     exit 0
 else
-  echo "#######5"
+    echo "#######5"
     echo "Postgresql version changed. Reindexing all databases..."
     reindexAllDatabases
 fi

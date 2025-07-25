@@ -126,6 +126,7 @@ function runMain() {
     sleep 3
   done
 
+  # Give the postgres user the necessary permissions
   chownPgdata
 
   if [ -z "$(ls -A "$PGDATA")" ]; then

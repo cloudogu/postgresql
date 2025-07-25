@@ -8,7 +8,6 @@ source "$(dirname "${BASH_SOURCE[0]}")/util.sh"
 
 function prepareForBackup() {
     isBackupAvailable=true
-    chownPgdata
 
     # Moving backup and emptying PGDATA directory
     mv "${PGDATA}"/postgresqlFullBackup.dump /tmp/postgresqlFullBackup.dump
@@ -194,6 +193,9 @@ function killPostgresql() {
 function runPostUpgrade() {
     FROM_VERSION="${1}"
     TO_VERSION="${2}"
+
+    # Give the postgres user the necessary permissions
+    chownPgdata
 
     isBackupAvailable=false
     if [ -e "${PGDATA}"/postgresqlFullBackup.dump ]; then

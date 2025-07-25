@@ -8,6 +8,8 @@ source "$(dirname "${BASH_SOURCE[0]}")/util.sh"
 
 function prepareForBackup() {
     isBackupAvailable=true
+    chownPgdata
+
     # Moving backup and emptying PGDATA directory
     mv "${PGDATA}"/postgresqlFullBackup.dump /tmp/postgresqlFullBackup.dump
 

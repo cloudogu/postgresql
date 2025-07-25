@@ -8,6 +8,8 @@ source "$(dirname "${BASH_SOURCE[0]}")/util.sh"
 
 function prepareForBackup() {
     isBackupAvailable=true
+    chownPgdata
+
     # Moving backup and emptying PGDATA directory
     mv "${PGDATA}"/postgresqlFullBackup.dump /tmp/postgresqlFullBackup.dump
 
@@ -186,7 +188,7 @@ function killPostgresql() {
       # Postgres is still running
       sleep 0.1
     done
-    echo "postgresql successfully killed (this is expected during post upgrade)"
+    echo "postgresql successfully stopped (this is expected during post upgrade)"
 }
 
 function runPostUpgrade() {

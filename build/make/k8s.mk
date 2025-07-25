@@ -36,11 +36,11 @@ K3S_LOCAL_REGISTRY_PORT?=30099
 
 # The URL of the container-registry to use. Defaults to the registry of the local-cluster.
 # If RUNTIME_ENV is "remote" it is "registry.cloudogu.com/testing"
-CES_REGISTRY_HOST?="${K3S_CLUSTER_FQDN}:${K3S_LOCAL_REGISTRY_PORT}"
+CES_REGISTRY_HOST?=${K3S_CLUSTER_FQDN}:${K3S_LOCAL_REGISTRY_PORT}
 CES_REGISTRY_NAMESPACE ?=
 ifeq (${RUNTIME_ENV}, remote)
-	CES_REGISTRY_HOST="registry.cloudogu.com"
-	CES_REGISTRY_NAMESPACE="/testing"
+	CES_REGISTRY_HOST=registry.cloudogu.com
+	CES_REGISTRY_NAMESPACE=/testing
 endif
 $(info CES_REGISTRY_HOST=$(CES_REGISTRY_HOST))
 
@@ -203,3 +203,14 @@ envtest: ${ENVTEST} ## Download envtest-setup locally if necessary.
 
 ${ENVTEST}:
 	$(call go-get-tool,$(ENVTEST),sigs.k8s.io/controller-runtime/tools/setup-envtest@latest)
+
+.PHONY: isProduction
+isProduction:
+	@if [[ "${STAGE}" == "production" ]]; then \
+		echo "Command executed in production stage. Aborting."; \
+		exit 1; \
+	else \
+		echo "Command executed in development stage. Continuing."; \
+	fi
+
+

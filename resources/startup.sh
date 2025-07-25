@@ -120,17 +120,13 @@ function setDoguLogLevel() {
 }
 
 function runMain() {
-  chown -R postgres "$PGDATA"
-
-  # create /run/postgresql, if not existent
-  mkdir -p /run/postgresql
-  chown postgres:postgres /run/postgresql
-
   # check whether post-upgrade script is still running
   while [[ "$(doguctl config "local_state" -d "empty")" == "upgrading" ]]; do
     echo "Upgrade script is running. Waiting..."
     sleep 3
   done
+
+  chownPgdata
 
   if [ -z "$(ls -A "$PGDATA")" ]; then
     initializePostgreSQL

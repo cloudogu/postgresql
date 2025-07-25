@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v14.17-5] - 2025-07-25
+### Fixed
+- [#56] Fix permission denied error on minor upgrade
+
 ## [v14.17-4] - 2025-07-25
 ### Fixed
 - [#54] Fix problem to chown files while post-upgrade script deletes the pgdata

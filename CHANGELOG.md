@@ -7,7 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 - [#46] Update postgresql to 14.18
-- [#46] Update Makefiles to 9.6.0
 - [#46] Implemented pipe-build-lib into Jenkinsfile
 
 ## [v14.17-5] - 2025-07-25

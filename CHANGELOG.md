@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v14.18-1] - 2025-08-12
+- [#46] Update postgresql to 14.18
+- [#46] Implemented pipe-build-lib into Jenkinsfile
+
 ## [v14.17-5] - 2025-07-25
 ### Fixed
 - [#56] Fix permission denied error on minor upgrade

@@ -10,6 +10,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#46] Update Makefiles to 9.6.0
 - [#46] Implemented pipe-build-lib into Jenkinsfile
 
+## [v14.17-5] - 2025-07-25
+### Fixed
+- [#56] Fix permission denied error on minor upgrade
+
+## [v14.17-4] - 2025-07-25
+### Fixed
+- [#54] Fix problem to chown files while post-upgrade script deletes the pgdata
+- [#54] Upgrade makefiles to 10.2.0
+
+## [v14.17-3] - 2025-07-24
+### Fixed
+- [#53] Fix race condition between startup script and post upgrade script
+
+## [v14.17-2] - 2025-04-24
+### Changed
+- [#50] Set sensible resource requests and limits
+
+## [v14.17-1] - 2025-03-04
+### Changed
+- [#44] Execute necessary migration for all databases in post-upgrade script
+
 ## [v14.15-2] - 2025-02-21
 ### Changed
 - [#47] Do not restrict access via `pg_hba.conf` in multinode anymore because network policies do that.

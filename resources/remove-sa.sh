@@ -17,6 +17,6 @@ SELECT_DB_NAMES="SELECT datname FROM pg_database WHERE datistemplate=false AND d
 for database_name in $(psql -U "${ADMIN_USERNAME}" -t -c "${SELECT_DB_NAMES}")
 do
   echo "Deleting service account '${database_name}'"
-  psql -U "${ADMIN_USERNAME}" -c "DROP DATABASE if exists ${database_name};" >/dev/null 2>&1
+  psql -U "${ADMIN_USERNAME}" -c "DROP DATABASE if exists ${database_name} WITH (FORCE);" >/dev/null 2>&1
   psql -U "${ADMIN_USERNAME}" -c "DROP USER if exists ${database_name};" >/dev/null 2>&1
 done

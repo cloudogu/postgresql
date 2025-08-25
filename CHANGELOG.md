@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v14.18-2] - 2025-08-25
+### Fixed
+- [#60] Force drop database when removing service accounts
+  - prevents errors if database is still in use
+
 ## [v14.18-1] - 2025-08-12
 - [#46] Update postgresql to 14.18
 - [#46] Implemented pipe-build-lib into Jenkinsfile

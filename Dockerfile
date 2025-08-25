@@ -1,4 +1,4 @@
-FROM registry.cloudogu.com/official/base:3.18.9-3 AS builder
+FROM registry.cloudogu.com/official/base:3.22.0-4 AS builder
 
 ENV GOSU_SHA256=bbc4136d03ab138b1ad66fa4fc051bafc6cc7ffae632b069a53657279a450de3
 
@@ -15,22 +15,22 @@ RUN set -x -o errexit \
  && echo "${GOSU_SHA256} */build/usr/local/bin/gosu" | sha256sum -c - \
  && chmod +x /build/usr/local/bin/gosu
 
-FROM registry.cloudogu.com/official/base:3.18.9-3
+FROM registry.cloudogu.com/official/base:3.22.0-4
 
 LABEL NAME="official/postgresql" \
-        VERSION="14.18-2" \
+        VERSION="17.6-0" \
         maintainer="hello@cloudogu.com"
 
 ENV LANG=en_US.utf8 \
     PGDATA=/var/lib/postgresql \
-    POSTGRESQL_VERSION=14.18-r0
+    POSTGRESQL_VERSION=17.6-r0
 
 RUN set -x -o errexit \
  && set -o nounset \
  && set -o pipefail \
  && apk update \
  && apk upgrade \
- && apk add --no-cache --update postgresql14="${POSTGRESQL_VERSION}" postgresql14-contrib="${POSTGRESQL_VERSION}"
+ && apk add --no-cache --update postgresql17="${POSTGRESQL_VERSION}" postgresql17-contrib="${POSTGRESQL_VERSION}"
 
 COPY resources/ /
 COPY --from=builder /build /

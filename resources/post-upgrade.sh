@@ -70,6 +70,43 @@ function reindexAllDatabases() {
     reindexdb -U postgres --verbose --all
 }
 
+function assertVersionFormat() {
+    if [[ "${1}" =~ ^[0-9]+\.[0-9]+\.[0-9]+-[0-9]+$ ]]; then
+        return 0
+    else
+        echo >&2 "invalid version format: ${1}"
+        exit 1
+    fi
+}
+
+function versionXGreaterOrEqualThanY() {
+    assertVersionFormat "${1}"
+    assertVersionFormat "${2}"
+    local a="${1%%-*}"
+    local b="${2%%-*}"
+    local smallest="$(printf '%s\n' "$b" "$a" | sort -V | head -n1)"
+    if test "$smallest" = "$b"; then
+        # $a >= $b
+        return 0 # true
+    else
+        return 1 # false
+    fi
+}
+
+function versionXLessThanY() {
+    assertVersionFormat "${1}"
+    assertVersionFormat "${2}"
+    local a="${1%%-*}"
+    local b="${2%%-*}"
+    local smallest="$(printf '%s\n' "$a" "$b" | sort -V | head -n1)"
+    if test "$smallest" = "$a" && test "$a" != "$b"; then
+        # $a < $b
+        return 0 # true
+    else
+        return 1 # false
+    fi
+}
+
 # versionXLessOrEqualThanY returns true if X is less than or equal to Y; otherwise false
 function versionXLessOrEqualThanY() {
   local sourceVersion="${1}"

@@ -131,6 +131,12 @@ function setDoguLogLevel() {
   echo "log_min_messages = ${POSTGRESQL_LOGLEVEL}" >>/var/lib/postgresql/postgresql.conf
 }
 
+function setMaxConnections() {
+  # replace default max connection count with configured max connection count
+  cons=$(doguctl config 'database_config/max_connections')
+  sed -i "/max_connections/c\max_connections = ${cons}" /var/lib/postgresql/postgresql.conf
+}
+
 function runMain() {
   # check whether post-upgrade script is still running
   while [[ "$(doguctl config "local_state" -d "empty")" == "upgrading" ]]; do
@@ -147,6 +153,7 @@ function runMain() {
 
   write_pg_hba_conf
   setDoguLogLevel
+  setMaxConnections
 
   # set stage for health check
   doguctl state ready

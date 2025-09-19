@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v14.18-3] - 2025-09-19
+### Added
+- [#64] make max_connections to postgresql configurable
+
 ## [v14.18-2] - 2025-08-25
 ### Fixed
 - [#60] Force drop database when removing service accounts

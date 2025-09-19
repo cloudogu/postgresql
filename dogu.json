@@ -1,6 +1,6 @@
 {
   "Name": "official/postgresql",
-  "Version": "14.18-2",
+  "Version": "14.18-3",
   "DisplayName": "PostgreSQL",
   "Description": "PostgreSQL Database.",
   "Url": "https://www.postgresql.org/",
@@ -117,6 +117,12 @@
       "Validation": {
         "Type": "BINARY_MEASUREMENT"
       }
+    },
+    {
+      "Name": "database_config/max_connections",
+      "Description": "Maximum amount of allowed database connections. Allowing to many connections can increase hardware requirements.",
+      "Optional": true,
+      "Default": "100"
     },
     {
       "Name": "logging/root",

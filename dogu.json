@@ -122,7 +122,7 @@
       "Name": "database_config/max_connections",
       "Description": "Maximum amount of allowed database connections. Allowing to many connections can increase hardware requirements.",
       "Optional": true,
-      "Default": "117"
+      "Default": "100"
     },
     {
       "Name": "logging/root",

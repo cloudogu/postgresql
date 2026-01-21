@@ -155,11 +155,19 @@ function runMain() {
   setDoguLogLevel
   setMaxConnections
 
-  # set stage for health check
+  # start database in background
+  gosu postgres postgres &
+
+  POSTGRES_PID=$!
+
+  # wait until it is actually accepting connections
+  waitForPostgreSQLStartup
+
+  # NOW mark ready
   doguctl state ready
 
-  # start database
-  exec gosu postgres postgres
+  # re-exec postgres as PID 1 (signal-safe)
+  wait "$POSTGRES_PID"
 }
 
 # make the script only run when executed, not when sourced from bats tests

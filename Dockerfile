@@ -9,7 +9,7 @@ LABEL NAME="official/postgresql" \
       maintainer="hello@cloudogu.com"
 
 ENV LANG=en_US.utf8 \
-    PGDATA=/var/lib/postgresql
+    PGDATA=/var/lib/postgresql/data
 
 # === Copy doguctl ===
 COPY --from=builder /usr/local/bin/doguctl /usr/local/bin/

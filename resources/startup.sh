@@ -126,15 +126,15 @@ function setDoguLogLevel() {
     ;;
   esac
   # Remove old log level setting, if existent
-  sed -i '/^log_min_messages/d' /var/lib/postgresql/postgresql.conf
+  sed -i '/^log_min_messages/d' ${PGDATA}/postgresql.conf
   # Append new log level setting
-  echo "log_min_messages = ${POSTGRESQL_LOGLEVEL}" >>/var/lib/postgresql/postgresql.conf
+  echo "log_min_messages = ${POSTGRESQL_LOGLEVEL}" >> ${PGDATA}/postgresql.conf
 }
 
 function setMaxConnections() {
   # replace default max connection count with configured max connection count
   cons=$(doguctl config 'database_config/max_connections')
-  sed -i "/max_connections/c\max_connections = ${cons}" /var/lib/postgresql/postgresql.conf
+  sed -i "/max_connections/c\max_connections = ${cons}" ${PGDATA}/postgresql.conf
 }
 
 function runMain() {
@@ -147,7 +147,7 @@ function runMain() {
   # Give the postgres user the necessary permissions
   chownPgdata
 
-  if [ -z "$(ls -A "$PGDATA")" ]; then
+  if [ ! -f "$PGDATA/PG_VERSION" ]; then
     initializePostgreSQL
   fi
 
@@ -155,11 +155,18 @@ function runMain() {
   setDoguLogLevel
   setMaxConnections
 
-  # set stage for health check
+  # start postgres in background
+  gosu postgres postgres &
+  POSTGRES_PID=$!
+
+  # wait until it actually accepts connections
+  waitForPostgreSQLStartup
+
+  # NOW mark ready
   doguctl state ready
 
-  # start database
-  exec gosu postgres postgres
+  # hand over PID 1 lifecycle to postgres
+  wait "$POSTGRES_PID"
 }
 
 # make the script only run when executed, not when sourced from bats tests

@@ -34,7 +34,7 @@ file:
     owner: root
     group: root
     filetype: file
-  /var/lib/postgresql:
+  /var/lib/postgresql/data:
     exists: true
     owner: postgres
     filetype: directory

@@ -20,6 +20,8 @@ RUN set -eux; \
     mkdir -p "$PGDATA"; \
     chown -R postgres:postgres /var/lib/postgresql
 
+RUN apk add --no-cache libc6-compat shadow
+
 VOLUME ["/var/lib/postgresql"]
 
 HEALTHCHECK --interval=5s CMD doguctl healthy postgresql || exit 1

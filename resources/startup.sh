@@ -126,15 +126,15 @@ function setDoguLogLevel() {
     ;;
   esac
   # Remove old log level setting, if existent
-  sed -i '/^log_min_messages/d' ${PGDATA}/postgresql.conf
+  sed -i '/^log_min_messages/d' "${PGDATA}"/postgresql.conf
   # Append new log level setting
-  echo "log_min_messages = ${POSTGRESQL_LOGLEVEL}" >> ${PGDATA}/postgresql.conf
+  echo "log_min_messages = ${POSTGRESQL_LOGLEVEL}" >> "${PGDATA}"/postgresql.conf
 }
 
 function setMaxConnections() {
   # replace default max connection count with configured max connection count
   cons=$(doguctl config 'database_config/max_connections')
-  sed -i "/max_connections/c\max_connections = ${cons}" ${PGDATA}/postgresql.conf
+  sed -i "/max_connections/c\max_connections = ${cons}" "${PGDATA}"/postgresql.conf
 }
 
 function runMain() {

@@ -8,6 +8,8 @@ function initializePostgreSQL() {
     # set stage for health check
     doguctl state installing
 
+    ls -la $PGDATA
+
     # install database
     gosu postgres initdb
 

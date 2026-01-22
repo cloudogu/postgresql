@@ -47,6 +47,6 @@ process:
   postgres:
     running: true
 mount:
-  /var/lib/postgresql:
+  /var/lib/postgresql/data:
     exists: true
     filesystem: btrfs

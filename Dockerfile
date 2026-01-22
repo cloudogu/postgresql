@@ -17,15 +17,15 @@ COPY --from=builder /usr/local/bin/doguctl /usr/local/bin/
 COPY resources/ /
 
 RUN set -eux; \
-    mkdir -p "$PGDATA"; \
-    chown -R postgres:postgres /var/lib/postgresql
+    mkdir -p "${PGDATA}"; \
+    chown -R postgres:postgres "${PGDATA}"
 
-RUN apk add --no-cache libc6-compat shadow
-
-VOLUME ["/var/lib/postgresql"]
+VOLUME ["/var/lib/postgresql/data"]
 
 HEALTHCHECK --interval=5s CMD doguctl healthy postgresql || exit 1
 
 EXPOSE 5432
+
+ENTRYPOINT []
 
 CMD ["/startup.sh"]

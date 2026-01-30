@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v14.20-1] - 2026-01-30
+### Added
+- [#66] Update postgresql to 14.20 by using dockerhub image instead of alpine upstream
+- [#66] Update base image to 3.23.2-2
+
 ## [v14.18-3] - 2025-09-19
 ### Added
 - [#64] make max_connections to postgresql configurable

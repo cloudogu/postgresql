@@ -1,44 +1,31 @@
-FROM registry.cloudogu.com/official/base:3.18.9-3 AS builder
+FROM registry.cloudogu.com/official/base:3.23.2-2 AS builder
 
-ENV GOSU_SHA256=bbc4136d03ab138b1ad66fa4fc051bafc6cc7ffae632b069a53657279a450de3
+# get doguctl
 
-WORKDIR /build
-
-RUN set -x -o errexit \
- && set -o nounset \
- && set -o pipefail \
- && apk update \
- && apk upgrade \
- && apk add wget \
- && mkdir -p /build/usr/local/bin \
- && wget --progress=bar:force:noscroll -O /build/usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/1.17/gosu-amd64" \
- && echo "${GOSU_SHA256} */build/usr/local/bin/gosu" | sha256sum -c - \
- && chmod +x /build/usr/local/bin/gosu
-
-FROM registry.cloudogu.com/official/base:3.18.9-3
+FROM postgres:14.20-alpine3.23
 
 LABEL NAME="official/postgresql" \
-        VERSION="14.18-3" \
-        maintainer="hello@cloudogu.com"
+      VERSION="14.20-1" \
+      maintainer="hello@cloudogu.com"
 
 ENV LANG=en_US.utf8 \
-    PGDATA=/var/lib/postgresql \
-    POSTGRESQL_VERSION=14.18-r0
+    PGDATA=/var/lib/postgresql/data
 
-RUN set -x -o errexit \
- && set -o nounset \
- && set -o pipefail \
- && apk update \
- && apk upgrade \
- && apk add --no-cache --update postgresql14="${POSTGRESQL_VERSION}" postgresql14-contrib="${POSTGRESQL_VERSION}"
+# === Copy doguctl ===
+COPY --from=builder /usr/local/bin/doguctl /usr/local/bin/
 
 COPY resources/ /
-COPY --from=builder /build /
 
-VOLUME ["/var/lib/postgresql"]
+RUN set -eux; \
+    mkdir -p "${PGDATA}"; \
+    chown -R postgres:postgres "${PGDATA}"
+
+VOLUME ["/var/lib/postgresql/data"]
 
 HEALTHCHECK --interval=5s CMD doguctl healthy postgresql || exit 1
 
 EXPOSE 5432
+
+ENTRYPOINT []
 
 CMD ["/startup.sh"]

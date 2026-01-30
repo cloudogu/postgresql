@@ -34,13 +34,10 @@ file:
     owner: root
     group: root
     filetype: file
-  /var/lib/postgresql:
+  /var/lib/postgresql/data:
     exists: true
     owner: postgres
     filetype: directory
-package:
-  postgresql14:
-    installed: true
 port:
   tcp:5432:
     listening: true
@@ -50,6 +47,6 @@ process:
   postgres:
     running: true
 mount:
-  /var/lib/postgresql:
+  /var/lib/postgresql/data:
     exists: true
     filesystem: btrfs

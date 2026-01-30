@@ -5,7 +5,7 @@ FROM registry.cloudogu.com/official/base:3.23.2-2 AS builder
 FROM postgres:14.20-alpine3.23
 
 LABEL NAME="official/postgresql" \
-      VERSION="14.20-0" \
+      VERSION="14.20-1" \
       maintainer="hello@cloudogu.com"
 
 ENV LANG=en_US.utf8 \

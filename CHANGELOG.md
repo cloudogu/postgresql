@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- [#66] Update postgresql to 14.20 by using dockerhub image instead of alpine upstream
+- [#66] Update base image to 3.23.2-2
 
 ## [v14.18-3] - 2025-09-19
 ### Added

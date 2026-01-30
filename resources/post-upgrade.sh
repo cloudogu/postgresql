@@ -21,7 +21,26 @@ function prepareForBackup() {
 
 function startPostgresql() {
     echo "start postgresql"
-    gosu postgres postgres &
+
+    # Migrate legacy PGDATA layout:
+    # Older images (<v14.20)initialized PostgreSQL in /var/lib/postgresql (parent dir),
+    # but the current image mounts /var/lib/postgresql/data as the real PGDATA.
+    # PostgreSQL requires the cluster root to be exactly the mounted directory,
+    # so we move the existing cluster into /data once to match the new layout.
+
+    # Allow postgres to traverse into the mounted volume
+    chmod 755 /var/lib/postgresql
+    # move everything except data/
+    for f in /var/lib/postgresql/*; do
+      [ "$f" = "/var/lib/postgresql/data" ] && continue
+      mv "$f" /var/lib/postgresql/data/
+    done
+    # Ensure correct perms inside the volume
+    chown -R postgres:postgres "$PGDATA"
+    chmod 700 "$PGDATA"
+
+    exec gosu postgres postgres -D "$PGDATA"
+
     PID=$!
 
     while ! pg_isready >/dev/null; do

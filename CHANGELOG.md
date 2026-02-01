@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v14.17-6] - 2026-02-01
+
+### Security
+- CVE fixed: [cve-2025-15467](https://avd.aquasec.com/nvd/2025/cve-2025-15467/)
+
+
 ## [v14.17-5] - 2025-07-25
 ### Fixed
 - [#56] Fix permission denied error on minor upgrade

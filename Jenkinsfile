@@ -22,4 +22,12 @@ def pipe = new com.cloudogu.sos.pipebuildlib.DoguPipe(this, [
 
 pipe.setBuildProperties()
 pipe.addDefaultStages()
+
+pipe.insertStageAfter("verify", 'Finish Release')
+{
+        String releaseVersion = 'v14.17-6'
+        pipe.ecoSystem.push('/dogu')
+        pipe.github.createReleaseWithChangelog(releaseVersion, changelog, "main")
+}
+
 pipe.run()

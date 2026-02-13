@@ -1,4 +1,4 @@
-FROM registry.cloudogu.com/official/base:3.23.2-2 AS builder
+FROM registry.cloudogu.com/official/base:3.23.3-3 AS builder
 
 # get doguctl
 

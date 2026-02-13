@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y git \
 FROM postgres:14.20-alpine3.23
 
 LABEL NAME="official/postgresql" \
-      VERSION="14.20-1" \
+      VERSION="14.20-2" \
       maintainer="hello@cloudogu.com"
 
 ENV LANG=en_US.utf8 \

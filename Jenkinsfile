@@ -18,6 +18,7 @@ def pipe = new com.cloudogu.sos.pipebuildlib.DoguPipe(this, [
     checkMarkdown        : true,
     checkEOL             : false,
     dependencies         : ['usermgt', 'cas'],
+    defaultBranch        : 'master',
 ])
 
 pipe.setBuildProperties()

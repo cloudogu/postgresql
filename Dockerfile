@@ -1,4 +1,15 @@
-FROM registry.cloudogu.com/official/base:3.23.2-2 AS builder
+FROM registry.cloudogu.com/official/base:3.23.3-3 AS builder
+
+FROM golang:1.26.0 AS gosu-builder
+
+WORKDIR /gosu-src
+
+# Clone the `gosu` source code and build it
+RUN apt-get update && apt-get install -y git \
+    && git clone https://github.com/tianon/gosu.git . \
+    && git checkout 1.17 \
+    && go build -o /usr/local/bin/gosu . \
+    && chmod +x /usr/local/bin/gosu
 
 # get doguctl
 
@@ -13,6 +24,9 @@ ENV LANG=en_US.utf8 \
 
 # === Copy doguctl ===
 COPY --from=builder /usr/local/bin/doguctl /usr/local/bin/
+
+# Copy the `gosu` binary built with the latest Go version
+COPY --from=gosu-builder /usr/local/bin/gosu /usr/local/bin/gosu
 
 COPY resources/ /
 

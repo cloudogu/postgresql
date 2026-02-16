@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y git \
 
 # get doguctl
 
-FROM postgres:14.20-alpine3.23
+FROM postgres:14.21-alpine3.23
 
 LABEL NAME="official/postgresql" \
       VERSION="14.20-2" \

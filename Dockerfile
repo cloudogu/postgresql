@@ -1,4 +1,4 @@
-FROM registry.cloudogu.com/official/base:3.23.3-3 AS builder
+FROM registry.cloudogu.com/official/base:3.23.3-4 AS builder
 
 FROM golang:1.26.0 AS gosu-builder
 

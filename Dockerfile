@@ -13,14 +13,11 @@ RUN apt-get update && apt-get install -y git \
 
 # get doguctl
 
-FROM postgres:14.20-alpine3.23
+FROM postgres:14.21-alpine3.23
 
 LABEL NAME="official/postgresql" \
       VERSION="14.20-2" \
       maintainer="hello@cloudogu.com"
-
-ENV LANG=en_US.utf8 \
-    PGDATA=/var/lib/postgresql/data
 
 # === Copy doguctl ===
 COPY --from=builder /usr/local/bin/doguctl /usr/local/bin/
@@ -30,16 +27,10 @@ COPY --from=gosu-builder /usr/local/bin/gosu /usr/local/bin/gosu
 
 COPY resources/ /
 
-RUN set -eux; \
-    mkdir -p "${PGDATA}"; \
-    chown -R postgres:postgres "${PGDATA}"
-
-VOLUME ["/var/lib/postgresql/data"]
-
 HEALTHCHECK --interval=5s CMD doguctl healthy postgresql || exit 1
 
 EXPOSE 5432
 
-ENTRYPOINT []
+ENTRYPOINT ["/startup.sh"]
 
-CMD ["/startup.sh"]
+CMD ["postgres"]

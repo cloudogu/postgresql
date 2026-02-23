@@ -14,9 +14,27 @@ echo "                  (///  (//////)**--_./////_----*//////)   ///) "
 echo "                   V///   '°°°°      (/////)      °°°°'   ////  "
 echo "                    V/////(////////\. '°°°' ./////////(///(/'   "
 echo "                       'V/(/////////////////////////////V'      "
+echo "                                                                "
+echo "                               Powered by Cloudogu              "
+echo "                                                                "
+echo "                                                                "
 
-# shellcheck disable=SC1091
-source "$(dirname "${BASH_SOURCE[0]}")/util.sh"
+CUSTOM_HBA="/pg_hba.conf"
+
+function initAdmin() {
+  # postgres is the default user running the database
+  POSTGRES_USER="postgres"
+
+  # store the user in local config
+  doguctl config user "${POSTGRES_USER}"
+
+  # create an initial random password
+  local postgres_psw
+  postgres_psw=$(doguctl random)
+
+  # store the password encrypted
+  doguctl config -e password "${postgres_psw}"
+}
 
 function mask2cidr() {
   local storedIFS="${IFS}"
@@ -88,81 +106,60 @@ function create_hba() {
   fi
 }
 
-function write_pg_hba_conf() {
-  create_hba >"${PGDATA}"/pg_hba.conf
-}
-
-function waitForPostgreSQLStartup() {
-  while ! pg_isready >/dev/null; do
-    # Postgres is not ready yet to accept connections
-    sleep 0.1
-  done
-}
-
-function waitForPostgreSQLShutdown() {
-  while pgrep -x postgres >/dev/null; do
-    # Postgres is still running
-    sleep 0.1
-  done
-}
-
 # See https://www.postgresql.org/docs/14/runtime-config-logging.html
-function setDoguLogLevel() {
-  echo "Mapping dogu specific log level..."
+function mapDoguLogLevel() {
+  local currentLogLevel
   currentLogLevel=$(doguctl config --default "WARN" "logging/root")
 
   case "${currentLogLevel}" in
-  "ERROR")
-    export POSTGRESQL_LOGLEVEL="ERROR"
-    ;;
-  "INFO")
-    export POSTGRESQL_LOGLEVEL="INFO"
-    ;;
-  "DEBUG")
-    export POSTGRESQL_LOGLEVEL="DEBUG5"
-    ;;
-  *)
-    export POSTGRESQL_LOGLEVEL="WARNING"
-    ;;
+    "ERROR") echo "ERROR"   ;;
+    "INFO")  echo "INFO"    ;;
+    "DEBUG") echo "DEBUG5"  ;;
+    *)       echo "WARNING" ;;
   esac
-  # Remove old log level setting, if existent
-  sed -i '/^log_min_messages/d' "${PGDATA}"/postgresql.conf
-  # Append new log level setting
-  echo "log_min_messages = ${POSTGRESQL_LOGLEVEL}" >> "${PGDATA}"/postgresql.conf
 }
 
-function setMaxConnections() {
-  # replace default max connection count with configured max connection count
-  cons=$(doguctl config 'database_config/max_connections')
-  sed -i "/max_connections/c\max_connections = ${cons}" "${PGDATA}"/postgresql.conf
+function getMaxConnections() {
+  doguctl config 'database_config/max_connections'
 }
 
 function runMain() {
   # check whether post-upgrade script is still running
   while [[ "$(doguctl config "local_state" -d "empty")" == "upgrading" ]]; do
-    echo "Upgrade script is running. Waiting..."
+    echo "Post-Upgrade script is running. Waiting..."
     sleep 3
   done
 
-  # Give the postgres user the necessary permissions
-  chownPgdata
-
+  # fresh install
   if [ ! -f "$PGDATA/PG_VERSION" ]; then
-    initializePostgreSQL
+    echo "Install new postgresql instance..."
+    doguctl state installing
+    initAdmin
   fi
 
-  write_pg_hba_conf
-  setDoguLogLevel
-  setMaxConnections
+  echo "Writing custom hba file in ${CUSTOM_HBA}..."
+  create_hba > "${CUSTOM_HBA}"
 
-  # set stage for health check
+  echo "Mapping dogu specific log level..."
+  POSTGRESQL_LOGLEVEL=$(mapDoguLogLevel)
+
+  echo "Get max connections for postgresql..."
+  POSTGRES_MAX_CONNECTIONS=$(getMaxConnections)
+
+  echo "Setting superuser password for postgresql"
+  POSTGRES_PASSWORD=$(doguctl config -e password)
+  export POSTGRES_PASSWORD
+
   doguctl state ready
 
-  # start database
-  exec gosu postgres postgres
+  exec /usr/local/bin/docker-entrypoint.sh "$@" \
+    -c hba_file="${CUSTOM_HBA}" \
+    -c listen_addresses="*" \
+    -c log_min_messages="${POSTGRESQL_LOGLEVEL}" \
+    -c max_connections="${POSTGRES_MAX_CONNECTIONS}"
 }
 
 # make the script only run when executed, not when sourced from bats tests
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-  runMain
+  runMain "$@"
 fi

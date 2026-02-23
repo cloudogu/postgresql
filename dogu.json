@@ -14,7 +14,7 @@
   "Volumes": [
     {
       "Name": "data",
-      "Path": "/var/lib/postgresql",
+      "Path": "/var/lib/postgresql/data",
       "Owner": "1000",
       "Group": "1000",
       "NeedsBackup": true

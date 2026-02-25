@@ -1,3 +1,8 @@
+ARG PG_MAJOR=14
+ARG PG_MINOR=21
+
+ARG ALPINE_VERSION=3.23
+
 FROM registry.cloudogu.com/official/base:3.23.3-3 AS builder
 
 FROM golang:1.26.0 AS gosu-builder
@@ -11,9 +16,9 @@ RUN apt-get update && apt-get install -y git \
     && go build -o /usr/local/bin/gosu . \
     && chmod +x /usr/local/bin/gosu
 
-# get doguctl
+FROM postgres:${PG_MAJOR}.${PG_MINOR}-alpine${ALPINE_VERSION}
 
-FROM postgres:14.21-alpine3.23
+ARG PG_MAJOR
 
 LABEL NAME="official/postgresql" \
       VERSION="14.20-2" \
@@ -25,7 +30,16 @@ COPY --from=builder /usr/local/bin/doguctl /usr/local/bin/
 # Copy the `gosu` binary built with the latest Go version
 COPY --from=gosu-builder /usr/local/bin/gosu /usr/local/bin/gosu
 
+# Copy migrations scripts
+COPY resources/migrations/ /docker-entrypoint-initdb.d/
+RUN chmod +x /docker-entrypoint-initdb.d/*.sh
+
 COPY resources/ /
+RUN rm -rf /migrations
+
+# Starting from PostgreSQL version 18 PGDATA will be set to be version specific - we already opt-in to
+# facilitate migration later - with version 18 this statement can be removed.
+ENV PGDATA /var/lib/postgresql/${PG_MAJOR}/docker
 
 HEALTHCHECK --interval=5s CMD doguctl healthy postgresql || exit 1
 

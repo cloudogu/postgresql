@@ -26,9 +26,9 @@ function runRestore() {
 
   echo "Performing PostgreSQL Restore..."
 
-  # Wir filtern den Dump, bevor er an psql übergeben wird.
-  # Dadurch verhindern wir, dass der 'postgres' user sich selbst löschen oder ändern will.
-  # - ON_ERROR_STOP=1 bleibt aktiv, um bei echten Datenfehlern abzubrechen.
+  # We filter the dump before passing it to psql.
+  # This prevents the ‘postgres’ user from deleting or modifying itself.
+  # - ON_ERROR_STOP=1 remains active to abort in case of real data errors.
   sed -e '/DROP ROLE IF EXISTS '"${postgres_user}"';/d' \
       -e '/CREATE ROLE '"${postgres_user}"';/d' \
       -e '/ALTER ROLE '"${postgres_user}"'/d' \

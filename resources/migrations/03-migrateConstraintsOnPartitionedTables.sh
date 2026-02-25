@@ -44,11 +44,11 @@ function runMigrateConstraintsOnPartitionedTables() {
         if [[ -n "${result}" ]]; then
             echo "Found problematic constraints in ${DATABASE_NAME}. Migrating..."
 
-            # 4. Zeilenweise Verarbeitung des Ergebnisses
+            # 4. Iterate over each line
             while IFS='|' read -r table_name constraint_name ref_table drop_cmd add_cmd; do
                 echo "Fixing constraint '${constraint_name}' on table '${table_name}'..."
 
-                # Befehle ausführen (Output nach /dev/null, da Echo oben reicht)
+                # prevent output
                 psql -v ON_ERROR_STOP=1 -U "${postgres_user}" -d "${DATABASE_NAME}" -c "${drop_cmd}" > /dev/null
                 psql -v ON_ERROR_STOP=1 -U "${postgres_user}" -d "${DATABASE_NAME}" -c "${add_cmd}" > /dev/null
             done <<< "${result}"
@@ -57,7 +57,6 @@ function runMigrateConstraintsOnPartitionedTables() {
         fi
     done
 
-    # Flag setzen, damit es nur einmal läuft
     doguctl config migrated_database_constraints "true"
     echo "Successfully run migrateConstraintsOnPartitionedTables script."
 }

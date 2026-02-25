@@ -18,9 +18,9 @@ setup() {
   export gosu
   export PATH="${BATS_TMPDIR}:${PATH}"
   export PGDATA="/var/lib/postgresql"
-  ln -s "${pg_dumpall}" "${BATS_TMPDIR}/pg_dumpall"
-  ln -s "${doguctl}" "${BATS_TMPDIR}/doguctl"
-  ln -s "${doguctl}" "${BATS_TMPDIR}/gosu"
+  ln -sf "${pg_dumpall}" "${BATS_TMPDIR}/pg_dumpall"
+  ln -sf "${doguctl}" "${BATS_TMPDIR}/doguctl"
+  ln -sf "${doguctl}" "${BATS_TMPDIR}/gosu"
 }
 
 teardown() {

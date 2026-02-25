@@ -19,6 +19,14 @@ function stopPostgresql() {
   docker_temp_server_stop
 }
 
+function runMigrations() {
+  #run migrations manually
+  for script in /docker-entrypoint-initdb.d/*.sh; do
+    echo "Manually executing $script..."
+    "$script"
+  done
+}
+
 # New PostgreSQL version requires completely empty folder
 function prepareForRestore() {
   echo "Preparing storage for restore..."
@@ -81,13 +89,7 @@ function runPostUpgrade() {
     fi
 
     startPostgresql
-
-    #run migrations manually
-    for script in /docker-entrypoint-initdb.d/*.sh; do
-      echo "Manually executing $script..."
-      "$script"
-    done
-
+    runMigrations
     stopPostgresql
 
     doguctl config --rm "local_state"

@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v14.21-1] - 2026-02-26
+### Changed
+- [#74] Update postgresql to 14.21
+- [#74] Delegate startup of postgresql to official docker-entrypoint of postgresql image
+- [#74] Use modular migration scripts for upgrades
+
+### Fixed
+- [#74] Use right volume mount for data
+  - Before anonymous docker volume has been used for storing data - this could lead to data loss when container gets recreated 
+- [#74] Use full backup / restore mechanism to migrate to new volume schema instead of moving data
+
 ## [v14.20-2] - 2026-02-13
 ### Changed
  - [#68] Build gosu executbale with go 1.26.0 to get cve fixes

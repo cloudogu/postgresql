@@ -12,17 +12,21 @@ load '/workspace/target/bats_libs/bats-file/load.bash'
 setup() {
   pg_dumpall="$(mock_create)"
   doguctl="$(mock_create)"
+  gosu="$(mock_create)"
   export pg_dumpall
   export doguctl
+  export gosu
   export PATH="${BATS_TMPDIR}:${PATH}"
   export PGDATA="/var/lib/postgresql"
-  ln -s "${pg_dumpall}" "${BATS_TMPDIR}/pg_dumpall"
-  ln -s "${doguctl}" "${BATS_TMPDIR}/doguctl"
+  ln -sf "${pg_dumpall}" "${BATS_TMPDIR}/pg_dumpall"
+  ln -sf "${doguctl}" "${BATS_TMPDIR}/doguctl"
+  ln -sf "${doguctl}" "${BATS_TMPDIR}/gosu"
 }
 
 teardown() {
   rm "${BATS_TMPDIR}/pg_dumpall"
   rm "${BATS_TMPDIR}/doguctl"
+  rm "${BATS_TMPDIR}/gosu"
 }
 
 @test "runPreUpgrade should do nothing on equal versions" {
@@ -40,7 +44,7 @@ teardown() {
   source /workspace/resources/pre-upgrade.sh
   mock_set_status "${doguctl}" 0
 
-  run runPreUpgrade "1.0.0-1" "1.1.0-1"
+  run runPreUpgrade "100.0.0-1" "100.1.0-1"
 
   assert_success
   assert_equal "$(mock_get_call_num "${pg_dumpall}")" "0"
@@ -52,13 +56,13 @@ teardown() {
   source /workspace/resources/pre-upgrade.sh
   mock_set_status "${doguctl}" 0
   mock_set_status "${pg_dumpall}" 0
+  mock_set_status "${gosu}" 0
 
   run runPreUpgrade "1.0.0-1" "2.0.0-1"
 
   assert_success
-  assert_equal "$(mock_get_call_num "${pg_dumpall}")" "1"
-  assert_equal "$(mock_get_call_num "${doguctl}")" "1"
-  assert_line "Dumping database to /var/lib/postgresql/postgresqlFullBackup.dump..."
-  assert_line "Finished dumping database"
+  assert_equal "$(mock_get_call_num "${doguctl}")" "4"
+  assert_line "Creating lock file /var/lib/postgresql/backup/backup.lock..."
+  assert_line "Successfully created backup /var/lib/postgresql/backup/full_backup_$(date +%F).sql"
   assert_line 'Set registry flag so startup script waits for post-upgrade to finish...'
 }

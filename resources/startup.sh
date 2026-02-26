@@ -150,6 +150,11 @@ function runMain() {
   POSTGRES_PASSWORD=$(doguctl config -e password)
   export POSTGRES_PASSWORD
 
+  # make sure /var/ces/state can be used by the postgres user
+  if [ -d "/var/ces/state" ]; then
+    chown -R postgres:postgres "/var/ces/state"
+  fi
+
   doguctl state ready
 
   exec /usr/local/bin/docker-entrypoint.sh "$@" \

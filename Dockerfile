@@ -24,6 +24,14 @@ LABEL NAME="official/postgresql" \
       VERSION="14.20-2" \
       maintainer="hello@cloudogu.com"
 
+# change the UID and GID for the postgres-user to 1000 so it matches the volume-mounts
+RUN set -eux; \
+    apk add --no-cache shadow; \
+    groupmod -g 1000 postgres; \
+    usermod -u 1000 -g 1000 postgres; \
+    chown -R 1000:1000 /var/lib/postgresql /var/run/postgresql; \
+    apk del shadow
+
 # === Copy doguctl ===
 COPY --from=builder /usr/local/bin/doguctl /usr/local/bin/
 

@@ -3,39 +3,59 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
+# versionXLessOrEqualThanY returns true if X is less than or equal to Y; otherwise false
+function versionXLessOrEqualThanY() {
+  local sourceVersion="${1}"
+  local targetVersion="${2}"
 
-function initializePostgreSQL() {
-    # set stage for health check
-    doguctl state installing
+  if [[ "${sourceVersion}" == "${targetVersion}" ]]; then
+    echo "upgrade to same version"
+    return 0
+  fi
 
-    ls -la $PGDATA
+  declare -r semVerRegex='([0-9]+)\.([0-9]+)\.([0-9]+)-([0-9]+)'
 
-    # install database
-    gosu postgres initdb
+   sourceMajor=0
+   sourceMinor=0
+   sourceBugfix=0
+   sourceDogu=0
+   targetMajor=0
+   targetMinor=0
+   targetBugfix=0
+   targetDogu=0
 
-    # postgres user
-    POSTGRES_USER="postgres"
+  if [[ ${sourceVersion} =~ ${semVerRegex} ]]; then
+    sourceMajor=${BASH_REMATCH[1]}
+    sourceMinor="${BASH_REMATCH[2]}"
+    sourceBugfix="${BASH_REMATCH[3]}"
+    sourceDogu="${BASH_REMATCH[4]}"
+  else
+    echo "ERROR: source dogu version ${sourceVersion} does not seem to be a semantic version"
+    exit 1
+  fi
 
-    # store the user
-    doguctl config user "${POSTGRES_USER}"
+  if [[ ${targetVersion} =~ ${semVerRegex} ]]; then
+    targetMajor=${BASH_REMATCH[1]}
+    targetMinor="${BASH_REMATCH[2]}"
+    targetBugfix="${BASH_REMATCH[3]}"
+    targetDogu="${BASH_REMATCH[4]}"
+  else
+    echo "ERROR: target dogu version ${targetVersion} does not seem to be a semantic version"
+    exit 1
+  fi
 
-    # create random password
-    POSTGRES_PASSWORD=$(doguctl random)
+  if [[ $((sourceMajor)) -lt $((targetMajor)) ]] ; then
+    return 0;
+  fi
+  if [[ $((sourceMajor)) -le $((targetMajor)) && $((sourceMinor)) -lt $((targetMinor)) ]] ; then
+    return 0;
+  fi
+  if [[ $((sourceMajor)) -le $((targetMajor)) && $((sourceMinor)) -le $((targetMinor)) && $((sourceBugfix)) -lt $((targetBugfix)) ]] ; then
+    return 0;
+  fi
+  if [[ $((sourceMajor)) -le $((targetMajor)) && $((sourceMinor)) -le $((targetMinor)) && $((sourceBugfix)) -le $((targetBugfix)) && $((sourceDogu)) -lt $((targetDogu)) ]] ; then
+    return 0;
+  fi
 
-    # store the password encrypted
-    doguctl config -e password "${POSTGRES_PASSWORD}"
-
-    # open port
-    sed -ri "s/^#(listen_addresses\s*=\s*)\S+/\1'*'/" "$PGDATA"/postgresql.conf
-
-    # set generated password
-    echo "ALTER USER ${POSTGRES_USER} WITH SUPERUSER PASSWORD '${POSTGRES_PASSWORD}';" | gosu 2>/dev/null 1>&2 postgres postgres --single -jE
-}
-
-function chownPgdata() {
-    chown -R postgres "$PGDATA"
-
-    # create /run/postgresql, if not existent
-    mkdir -p /run/postgresql
-    chown postgres:postgres /run/postgresql
+  return 1
 }

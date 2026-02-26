@@ -34,7 +34,7 @@ file:
     owner: root
     group: root
     filetype: file
-  /var/lib/postgresql/data:
+  /var/lib/postgresql:
     exists: true
     owner: postgres
     filetype: directory
@@ -47,6 +47,6 @@ process:
   postgres:
     running: true
 mount:
-  /var/lib/postgresql/data:
+  /var/lib/postgresql:
     exists: true
     filesystem: btrfs

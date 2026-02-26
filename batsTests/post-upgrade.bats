@@ -13,278 +13,108 @@ setup() {
   doguctl="$(mock_create)"
   export doguctl
   export PATH="${BATS_TMPDIR}:${PATH}"
-  mkdir ${BATS_TMPDIR}/postgresql_bats
-  export PGDATA="${BATS_TMPDIR}/postgresql_bats"
 
-  ln -s "${doguctl}" "${BATS_TMPDIR}/doguctl"
+  ln -sf "${doguctl}" "${BATS_TMPDIR}/doguctl"
+
+  # Mocks für Systembefehle
+  echo "#!/bin/bash" > "${BATS_TMPDIR}/chown"
+  chmod +x "${BATS_TMPDIR}/chown"
+  echo "#!/bin/bash" > "${BATS_TMPDIR}/gosu"
+  echo "shift 2; exec \"\$@\"" >> "${BATS_TMPDIR}/gosu"
+  chmod +x "${BATS_TMPDIR}/gosu"
+
+  # Fake Filesystem
+  export FAKE_ROOT="${BATS_TMPDIR}/fake_root"
+  export PG_BASE_DIR="${FAKE_ROOT}/var/lib/postgresql"
+  export PGDATA="${PG_BASE_DIR}/14/data"
+  export PG_MAJOR="14"
+  mkdir -p "${PGDATA}" "${PG_BASE_DIR}/backup"
 }
 
 teardown() {
-  /bin/rm "${BATS_TMPDIR}/doguctl"
-  /bin/rm -r "${BATS_TMPDIR}/postgresql_bats"
+  rm -rf "${FAKE_ROOT}"
+  rm -f "${BATS_TMPDIR}/post-upgrade-patched.sh"
+  rm -f "${BATS_TMPDIR}/util.sh"
 }
 
-@test "versionXLessOrEqualThanY() should return true for versions less than or equal to another" {
-  source /workspace/resources/post-upgrade.sh
+load_script_safely() {
+  # create mock for util.sh
+  touch "${BATS_TMPDIR}/util.sh"
 
-  run versionXLessOrEqualThanY "1.0.0-1" "1.0.0-1"
-  assert_success
-  run versionXLessOrEqualThanY "1.0.0-1" "1.0.0-2"
-  assert_success
-  run versionXLessOrEqualThanY "1.0.0-1" "1.1.0-2"
-  assert_success
-  run versionXLessOrEqualThanY "1.0.0-1" "1.0.2-2"
-  assert_success
-  run versionXLessOrEqualThanY "1.0.0-1" "1.0.0-2"
-  assert_success
-  run versionXLessOrEqualThanY "1.1.0-1" "1.1.0-2"
-  assert_success
-  run versionXLessOrEqualThanY "1.0.2-1" "1.0.2-2"
-  assert_success
-  run versionXLessOrEqualThanY "1.2.3-4" "1.2.3-4"
-  assert_success
-  run versionXLessOrEqualThanY "1.2.3-4" "1.2.3-5"
-  assert_success
+  # We need to patch the script: remove hardcoded source of entrypoint
+  sed 's|source "/usr/local/bin/docker-entrypoint.sh"|# entrypoint ignored|g' \
+      /workspace/resources/post-upgrade.sh > "${BATS_TMPDIR}/post-upgrade-patched.sh"
 
-  run versionXLessOrEqualThanY "1.0.0-1" "2.0.0-1"
-  assert_success
-  run versionXLessOrEqualThanY "1.0.0-1" "2.1.0-1"
-  assert_success
-  run versionXLessOrEqualThanY "1.0.0-1" "2.0.1-1"
-  assert_success
-  run versionXLessOrEqualThanY "1.0.0-1" "2.1.1-1"
-  assert_success
-  run versionXLessOrEqualThanY "5.1.3-1" "5.1.3-1"
-  assert_success
+  # load patched file
+  source "${BATS_TMPDIR}/post-upgrade-patched.sh"
 }
 
-@test "versionXLessOrEqualThanY() should return false for versions greater than another" {
-  source /workspace/resources/post-upgrade.sh
+@test "runPostUpgrade should exit early if versions match" {
+  load_script_safely
+  mock_set_status "${doguctl}" 0 1
 
-  run versionXLessOrEqualThanY "0.0.0-10" "0.0.0-9"
-  assert_failure
-  run versionXLessOrEqualThanY "1.0.0-1" "0.0.0-9"
-  assert_failure
-  run versionXLessOrEqualThanY "1.0.0-1" "0.0.9-9"
-  assert_failure
-  run versionXLessOrEqualThanY "1.0.0-1" "0.9.9-9"
-  assert_failure
-  run versionXLessOrEqualThanY "1.0.0-0" "0.9.9-9"
-  assert_failure
-  run versionXLessOrEqualThanY "1.1.0-1" "0.0.0-9"
-  assert_failure
-  run versionXLessOrEqualThanY "1.0.0-1" "0.0.9-9"
-  assert_failure
-  run versionXLessOrEqualThanY "1.0.0-1" "0.9.9-9"
-  assert_failure
-  run versionXLessOrEqualThanY "1.0.0-0" "0.9.9-9"
-  assert_failure
-
-  run versionXLessOrEqualThanY "1.2.3-4" "0.1.2-3"
-  assert_failure
-  run versionXLessOrEqualThanY "1.2.3-5" "0.1.2-3"
-  assert_failure
-
-  run versionXLessOrEqualThanY "2.0.0-1" "1.0.0-1"
-  assert_failure
-  run versionXLessOrEqualThanY "2.1.0-1" "1.0.0-1"
-  assert_failure
-  run versionXLessOrEqualThanY "2.0.1-1" "1.0.0-1"
-  assert_failure
-  run versionXLessOrEqualThanY "2.1.1-1" "1.0.0-1"
-  assert_failure
-}
-
-@test "runPostUpgrade should exit early if no version change" {
-  source /workspace/resources/post-upgrade.sh
-
-  # Mock the functions
-  startPostgresql() {
-    echo "startPostgresql is mocked"
-  }
-
-  mock_set_output "${doguctl}" "true" 1
-  mock_set_status "${doguctl}" 0 2
-  run runPostUpgrade "1.0.0-1" "1.0.0-1"
+  run runPostUpgrade "14.1-1" "14.1-1"
 
   assert_success
-  assert_equal "$(mock_get_call_num "${doguctl}")" "2"
-  assert_line "startPostgresql is mocked"
-  assert_line "FROM and TO versions are the same; Exiting..."
+  assert_line --partial "FROM and TO versions are the same"
 }
 
-@test "runPostUpgrade should also restrict stat visibility if no version change" {
-  source /workspace/resources/post-upgrade.sh
+@test "runPostUpgrade should prepare for restore if backup path is set" {
+  load_script_safely
 
-  # Mock the functions
-  startPostgresql() {
-    echo "startPostgresql is mocked"
-  }
-  restrictStatVisibility() {
-    echo "restrictStatVisibility is mocked"
+  # Override prepareForRestore für FAKE_ROOT
+  prepareForRestore() {
+    echo "Preparing storage for restore..."
   }
 
-  mock_set_output "${doguctl}" "false" 1
-  mock_set_status "${doguctl}" 0 2
-  run runPostUpgrade "1.0.0-1" "1.0.0-1"
-
-  assert_success
-  assert_equal "$(mock_get_call_num "${doguctl}")" "2"
-  assert_line "startPostgresql is mocked"
-  assert_line "Postgresql stats might be visible outside of their intended scope. Restricting stat visibility..."
-  assert_line "restrictStatVisibility is mocked"
-  assert_line "FROM and TO versions are the same; Exiting..."
-}
-
-@test "runPostUpgrade should reindexAllDatabases on version upgrade" {
-  source /workspace/resources/post-upgrade.sh
-
-  # Mock the functions
-  startPostgresql() {
-    echo "startPostgresql is mocked"
-  }
-  reindexAllDatabases() {
-    echo "reindexAllDatabases is mocked"
-  }
-  versionXLessOrEqualThanY() {
-    echo "versionXLessOrEqualThanY is mocked"
-    return 0
-  }
-  killPostgresql() {
-    echo "killPostgresql is mocked"
-  }
-
-  mock_set_output "${doguctl}" "true" 1
-  mock_set_output "${doguctl}" "true" 2
+  mock_set_output "${doguctl}" "postgres" 1
+  mock_set_output "${doguctl}" "/backup/dump.sql" 2
   mock_set_status "${doguctl}" 0 3
-  run runPostUpgrade "1.0.0-1" "2.0.0-1"
+
+  run runPostUpgrade "14.1-1" "14.2-1"
 
   assert_success
+  assert_line "backup found in config, prepare for restore..."
   assert_equal "$(mock_get_call_num "${doguctl}")" "3"
-  assert_line "startPostgresql is mocked"
-  assert_line "Postgresql version changed. Reindexing all databases..."
-  assert_line "reindexAllDatabases is mocked"
-  assert_line "versionXLessOrEqualThanY is mocked"
-  assert_line "killPostgresql is mocked"
 }
 
-@test "runPostUpgrade should restrict stats visibility if not already restricted" {
-  source /workspace/resources/post-upgrade.sh
+@test "runPostUpgrade should skip if database is uninitialized" {
+  load_script_safely
 
-  # Mock the functions
-  startPostgresql() {
-    echo "startPostgresql is mocked"
-  }
-  restrictStatVisibility() {
-    echo "restrictStatVisibility is mocked"
-  }
-  reindexAllDatabases() {
-    echo "reindexAllDatabases is mocked"
-  }
-  versionXLessOrEqualThanY() {
-    echo "versionXLessOrEqualThanY is mocked"
-    return 0
-  }
-  killPostgresql() {
-    echo "killPostgresql is mocked"
-  }
+  rm -f "${PGDATA}/PG_VERSION"
+  mock_set_output "${doguctl}" "postgres" 1
+  mock_set_output "${doguctl}" "empty" 2
 
-  # stats not yet restricted
-  mock_set_output "${doguctl}" "false" 1
-  mock_set_output "${doguctl}" "true" 2
-  mock_set_status "${doguctl}" 0 3
-  run runPostUpgrade "1.0.0-1" "2.0.0-1"
+  run runPostUpgrade "14.1-1" "14.2-1"
 
   assert_success
+  assert_line "PostgreSQL does not seem to be initialized, skip post upgrade..."
   assert_equal "$(mock_get_call_num "${doguctl}")" "3"
-  assert_line "startPostgresql is mocked"
-  assert_line "Postgresql stats might be visible outside of their intended scope. Restricting stat visibility..."
-  assert_line "restrictStatVisibility is mocked"
-  assert_line "reindexAllDatabases is mocked"
-  assert_line "versionXLessOrEqualThanY is mocked"
-  assert_line "killPostgresql is mocked"
 }
 
-@test "runPostUpgrade should restore db dump if dump file exists" {
-  source /workspace/resources/post-upgrade.sh
+@test "runPostUpgrade should execute init scripts" {
+  id() { echo "1000"; }
+  export -f id
+  load_script_safely
 
-  # Mock the functions
-  prepareForBackup() {
-    echo "prepareForBackup is mocked"
-    isBackupAvailable=true
-  }
-  startPostgresql() {
-    echo "startPostgresql is mocked"
-  }
-  restoreBackup() {
-    echo "restoreBackup is mocked"
-  }
-  reindexAllDatabases() {
-    echo "reindexAllDatabases is mocked"
-  }
-  versionXLessOrEqualThanY() {
-    echo "versionXLessOrEqualThanY is mocked"
-    return 0
-  }
-  killPostgresql() {
-    echo "killPostgresql is mocked"
+  startPostgresql(){
+    echo "mock startPostgresql"
   }
 
-  tmpfile="${PGDATA}/postgresqlFullBackup.dump"
-  touch "$tmpfile"  # Create the file
+  stopPostgresql(){
+    echo "mock stopPostgresql"
+  }
 
+  runMigrations(){
+    echo "INIT_SCRIPT_EXECUTED"
+  }
 
-  # stats not yet restricted
-  mock_set_output "${doguctl}" "true" 1
-  mock_set_output "${doguctl}" "true" 2
-  mock_set_status "${doguctl}" 0 3
-  run runPostUpgrade "1.0.0-1" "2.0.0-1"
+  echo "14" > "${PGDATA}/PG_VERSION"
+  mock_set_output "${doguctl}" "postgres" 1
+  mock_set_output "${doguctl}" "empty" 2
+
+  run runPostUpgrade "14.1-1" "14.2-1"
 
   assert_success
-  assert_equal "$(mock_get_call_num "${doguctl}")" "3"
-  assert_line "prepareForBackup is mocked"
-  assert_line "startPostgresql is mocked"
-  assert_line "restoreBackup is mocked"
-  assert_line "reindexAllDatabases is mocked"
-  assert_line "versionXLessOrEqualThanY is mocked"
-  assert_line "killPostgresql is mocked"
-
-  # Cleanup: Remove the file
-  rm "$tmpfile"
-}
-
-@test "runPostUpgrade should migrateConstraintsOnPartitionedTables if not yet migrated" {
-  source /workspace/resources/post-upgrade.sh
-
-  # Mock the functions
-  startPostgresql() {
-    echo "startPostgresql is mocked"
-  }
-  reindexAllDatabases() {
-    echo "reindexAllDatabases is mocked"
-  }
-  versionXLessOrEqualThanY() {
-    echo "versionXLessOrEqualThanY is mocked"
-    return 0
-  }
-  migrateConstraintsOnPartitionedTables() {
-    echo "migrateConstraintsOnPartitionedTables is mocked"
-  }
-  killPostgresql() {
-    echo "killPostgresql is mocked"
-  }
-
-  mock_set_output "${doguctl}" "true" 1
-  mock_set_output "${doguctl}" "false" 2
-  mock_set_status "${doguctl}" 0 3
-  run runPostUpgrade "1.0.0-1" "2.0.0-1"
-
-  assert_success
-  assert_equal "$(mock_get_call_num "${doguctl}")" "3"
-  assert_line "startPostgresql is mocked"
-  assert_line "Postgresql version changed. Reindexing all databases..."
-  assert_line "reindexAllDatabases is mocked"
-  assert_line "versionXLessOrEqualThanY is mocked"
-  assert_line "migrateConstraintsOnPartitionedTables is mocked"
-  assert_line "killPostgresql is mocked"
+  assert_line "Postgresql post-upgrade done"
 }

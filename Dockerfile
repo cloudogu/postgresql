@@ -3,7 +3,7 @@ ARG PG_MINOR=21
 
 ARG ALPINE_VERSION=3.23
 
-FROM registry.cloudogu.com/official/base:3.23.3-4 AS builder
+FROM registry.cloudogu.com/official/base:3.23.3-6 AS builder
 
 FROM golang:1.26.0 AS gosu-builder
 

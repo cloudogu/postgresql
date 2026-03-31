@@ -3,9 +3,9 @@ ARG PG_MINOR=21
 
 ARG ALPINE_VERSION=3.23
 
-FROM registry.cloudogu.com/official/base:3.23.3-4 AS builder
+FROM registry.cloudogu.com/official/base:3.23.3-6 AS base-image
 
-FROM golang:1.26.0 AS gosu-builder
+FROM golang:1.26.1 AS gosu-builder
 
 WORKDIR /gosu-src
 
@@ -21,7 +21,7 @@ FROM postgres:${PG_MAJOR}.${PG_MINOR}-alpine${ALPINE_VERSION}
 ARG PG_MAJOR
 
 LABEL NAME="official/postgresql" \
-      VERSION="14.21-1" \
+      VERSION="14.21-2" \
       maintainer="hello@cloudogu.com"
 
 # change the UID and GID for the postgres-user to 1000 so it matches the volume-mounts
@@ -32,8 +32,11 @@ RUN set -eux; \
     chown -R 1000:1000 /var/lib/postgresql /var/run/postgresql; \
     apk del shadow
 
+# Upgrade all the alpine packages, because postgres base-image brings some cve's piggyback
+RUN apk upgrade --no-cache
+
 # === Copy doguctl ===
-COPY --from=builder /usr/local/bin/doguctl /usr/local/bin/
+COPY --from=base-image /usr/local/bin/doguctl /usr/local/bin/
 
 # Copy the `gosu` binary built with the latest Go version
 COPY --from=gosu-builder /usr/local/bin/gosu /usr/local/bin/gosu

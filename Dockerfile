@@ -32,6 +32,9 @@ RUN set -eux; \
     chown -R 1000:1000 /var/lib/postgresql /var/run/postgresql; \
     apk del shadow
 
+# Upgrade all the alpine packages, because postgres base-image brings some cve's piggyback
+RUN apk upgrade --no-cache
+
 # === Copy doguctl ===
 COPY --from=base-image /usr/local/bin/doguctl /usr/local/bin/
 

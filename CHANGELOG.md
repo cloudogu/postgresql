@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v14.21-2] - 2026-03-31
+### Changed
+- [#77] Upgrade base-image to v3.23.3-6
+### Security
+- [#77] Fixed vulnerability [CVE-2026-22184](https://avd.aquasec.com/nvd/cve-2026-22184/)
+
 ## [v14.21-1] - 2026-02-26
 ### Changed
 - [#74] Update postgresql to 14.21

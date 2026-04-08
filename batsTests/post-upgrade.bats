@@ -26,8 +26,8 @@ setup() {
   # Fake Filesystem
   export FAKE_ROOT="${BATS_TMPDIR}/fake_root"
   export PG_BASE_DIR="${FAKE_ROOT}/var/lib/postgresql"
-  export PGDATA="${PG_BASE_DIR}/14/data"
-  export PG_MAJOR="14"
+  export PGDATA="${PG_BASE_DIR}/17/data"
+  export PG_MAJOR="17"
   mkdir -p "${PGDATA}" "${PG_BASE_DIR}/backup"
 }
 

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v14.21-3] - 2026-04-14
+### Fixed
+- [#80] Add missing parts of the partioned table migration script
+
 ## [v14.21-2] - 2026-03-31
 ### Changed
 - [#77] Upgrade base-image to v3.23.3-6

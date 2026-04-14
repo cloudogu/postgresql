@@ -36,7 +36,11 @@ function runMigrateConstraintsOnPartitionedTables() {
                         (SELECT count(*) FROM pg_catalog.pg_inherits i
                          WHERE (i.inhparent = c.conrelid OR i.inhparent = c.confrelid) AND
                            EXISTS (SELECT 1 FROM pg_catalog.pg_partitioned_table
-                                   WHERE partrelid = i.inhparent));"
+                                   WHERE partrelid = i.inhparent)) +
+                         CASE WHEN pg_catalog.pg_partition_root(conrelid) = confrelid THEN
+                                   (SELECT count(*) FROM pg_catalog.pg_partition_tree(confrelid)
+                                     WHERE level = 1)
+                              ELSE 0 END);"
 
         local result
         result=$(psql -U "${postgres_user}" -d "${DATABASE_NAME}" -t -A -F'|' -c "${QUERY}")

@@ -1,5 +1,5 @@
 ARG PG_MAJOR=14
-ARG PG_MINOR=21
+ARG PG_MINOR=22
 
 ARG ALPINE_VERSION=3.23
 
@@ -21,7 +21,7 @@ FROM postgres:${PG_MAJOR}.${PG_MINOR}-alpine${ALPINE_VERSION}
 ARG PG_MAJOR
 
 LABEL NAME="official/postgresql" \
-      VERSION="14.21-3" \
+      VERSION="14.22-0" \
       maintainer="hello@cloudogu.com"
 
 # change the UID and GID for the postgres-user to 1000 so it matches the volume-mounts

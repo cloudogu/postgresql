@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v14.22-1] - 2026-04-17
+- [#82] Update postgresql to 14.22
+
 ## [v14.21-3] - 2026-04-14
 ### Fixed
 - [#80] Add missing parts of the partioned table migration script

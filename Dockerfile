@@ -1,9 +1,9 @@
 ARG PG_MAJOR=14
-ARG PG_MINOR=22
+ARG PG_MINOR=23
 
-ARG ALPINE_VERSION=3.23
+ARG ALPINE_VERSION=3.24
 
-FROM registry.cloudogu.com/official/base:3.23.3-6 AS base-image
+FROM registry.cloudogu.com/official/base:3.24.0-1 AS base-image
 
 FROM golang:1.26.1 AS gosu-builder
 
@@ -21,7 +21,7 @@ FROM postgres:${PG_MAJOR}.${PG_MINOR}-alpine${ALPINE_VERSION}
 ARG PG_MAJOR
 
 LABEL NAME="official/postgresql" \
-      VERSION="14.22-1" \
+      VERSION="14.23-0" \
       maintainer="hello@cloudogu.com"
 
 # change the UID and GID for the postgres-user to 1000 so it matches the volume-mounts

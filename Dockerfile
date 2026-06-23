@@ -1,7 +1,7 @@
 ARG PG_MAJOR=14
-ARG PG_MINOR=22
+ARG PG_MINOR=23
 
-ARG ALPINE_VERSION=3.23
+ARG ALPINE_VERSION=3.24
 
 FROM registry.cloudogu.com/official/base:3.24.0-1 AS base-image
 

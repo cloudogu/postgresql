@@ -33,12 +33,23 @@ Restore-Fall:
 Regulärer Migrationsfall:
 
 1. Wenn kein Restore nötig ist und eine DB bereits initialisiert ist, startet `post-upgrade.sh` PostgreSQL temporär.
-2. Danach werden Migrationsskripte aus `/docker-entrypoint-initdb.d` (aus `resources/migrations`) manuell ausgeführt.
-3. PostgreSQL wird wieder gestoppt und `local_state` entfernt.
+2. Das Superuser-Passwort wird einmalig rotiert (siehe unten).
+3. Danach werden Migrationsskripte aus `/docker-entrypoint-initdb.d` (aus `resources/migrations`) manuell ausgeführt.
+4. PostgreSQL wird wieder gestoppt und `local_state` entfernt.
+
+### Rotation des Superuser-Passworts (`rotateSuperuserPassword`)
+
+Vor `doguctl` v0.12.2 nutzte `doguctl random` Gos `math/rand` statt `crypto/rand`. Betroffene Werte sind nicht erkennbar, deshalb rotiert jede Instanz ohne Marker.
+
+1. Marker `password_rotated` in der Dogu-Config, kein Versionsvergleich.
+2. Reihenfolge: Config, dann `ALTER USER`, dann Marker — eine abgebrochene Rotation wird wiederholt.
+3. Läuft nach `startPostgresql`, weil `ALTER USER` eine laufende DB braucht. Über den Unix-Socket genügt `trust`, das alte Passwort wird nicht gebraucht.
+4. Im Restore-Fall nicht erreicht - dort setzt `initAdmin` Passwort und Marker.
 
 ### Startup (`resources/startup.sh`)
 
 `startup.sh` wartet, solange `local_state=upgrading` gesetzt ist.
+Bei leerem `PGDATA` (postgresql nicht installiert) setzt `initAdmin` zusätzlich `password_rotated=true`, da ein frisch erzeugtes Passwort sicher ist.
 Danach startet es `/usr/local/bin/docker-entrypoint.sh` mit den Dogu-spezifischen Parametern.
 
 Wichtig:

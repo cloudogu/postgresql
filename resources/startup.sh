@@ -34,6 +34,9 @@ function initAdmin() {
 
   # store the password encrypted
   doguctl config -e password "${postgres_psw}"
+
+  # store the marker to indicate the password was encrypted new and safe
+  doguctl config "password_rotated" "true"
 }
 
 function mask2cidr() {
@@ -136,6 +139,12 @@ function runMain() {
     doguctl state installing
     initAdmin
   fi
+
+# PSEUDO
+  # check value of "password_rotated" from dogu config via "doguctl config" 
+  # if [["$(doguctl config "rotated" == ""]] # empty, non existent
+  # then call new function "rotate_default_user_password"
+  # 
 
   echo "Writing custom hba file in ${CUSTOM_HBA}..."
   create_hba > "${CUSTOM_HBA}"

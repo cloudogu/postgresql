@@ -9,9 +9,42 @@ source "/usr/local/bin/docker-entrypoint.sh"
 
 : "${PGDATA:?PGDATA is not set. Abort post-upgrade as the script needs the environment variable.}"
 
+function rotateSuperuserPassword(){
+  echo "rotate superuser password once"
+  
+  # receive flag indicating if password was rotated
+  local alreadyRotated;
+  alreadyRotated=$(doguctl config --default "false" "password_rotated")
+  
+  # if already rotated, leave
+  if [[ ${alreadyRotated} ]]; then
+    echo "superuser password already rotated"
+    exit 0
+  fi
+
+  # generate new password
+  local newSuperuserPassword;
+  newSuperuserPassword=$(doguctl random )
+  
+  # 1. store the user in local config
+  doguctl config -e password "${newSuperuserPassword}"
+
+  # get the postgres user
+  local postgresUser;
+  postgresUser=$(doguctl config user "${POSTGRES_USER}")
+
+  # 2. change the user in the database
+  psql -U "${ADMIN_USERNAME}" -c "ALTER USER ${postgresUser} WITH PASSWORD ${newSuperuserPassword}"
+
+  # rotation completed
+  doguctl config "password_rotated" "true"
+
+}
+
 function startPostgresql() {
   echo "starting postgresql temporary"
   docker_temp_server_start postgres
+  rotateSuperuserPassword
 }
 
 function stopPostgresql() {

@@ -34,6 +34,10 @@ function initAdmin() {
 
   # store the password encrypted
   doguctl config -e password "${postgres_psw}"
+
+  # A freshly generated password is safe by definition, so the rotation marker is set right away and
+  # rotateSuperuserPassword in post-upgrade.sh never runs on this instance.
+  doguctl config "password_rotated" "true"
 }
 
 function mask2cidr() {

@@ -5,6 +5,7 @@ set -o pipefail
 
 # shellcheck disable=SC1091
 source "$(dirname "${BASH_SOURCE[0]}")/util.sh"
+# shellcheck disable=SC1091
 source "/usr/local/bin/docker-entrypoint.sh"
 
 : "${PGDATA:?PGDATA is not set. Abort post-upgrade as the script needs the environment variable.}"
@@ -119,7 +120,7 @@ function runPostUpgrade() {
 
     #switch to postgres user
     if [ "$(id -u)" = '0' ]; then
-      exec gosu postgres "$BASH_SOURCE" "$@"
+      exec gosu postgres "${BASH_SOURCE[0]}" "$@"
     fi
 
     startPostgresql

@@ -70,3 +70,18 @@ Ziel            Router          Genmask         Flags   MSS Fenster irtt Iface
   assert_line '# container networks'
   assert_line "host    all             all             192.168.179.0/24          password"
 }
+
+@test "initAdmin() should set flag password_rotated true" {
+  # arrange
+  source /workspace/resources/startup.sh
+  mock_set_output "${doguctl}" "GEHEIM123" 2
+
+  # act
+  run initAdmin
+
+  # assert
+  assert_success
+  assert_equal "$(mock_get_call_args "${doguctl}" 3)" "config -e password GEHEIM123"
+  assert_equal "$(mock_get_call_args "${doguctl}" 4)" "config password_rotated true"
+  assert_equal "$(mock_get_call_num "${doguctl}")" "4"
+}

@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- [#91] Update postgresql to v14.24 — the dogu version v14.24-1 was released while the image still built on PostgreSQL 14.23
+
+### Fixed
+- [#91] Add `resources/post-upgrade.sh` and `resources/util.sh` to the shellcheck list in the `Jenkinsfile` — both were never linted
+- [#91] Expand `${BASH_SOURCE[0]}` instead of `$BASH_SOURCE` when re-executing `post-upgrade.sh` via `gosu` (SC2128)
 
 ## [v14.24-1] - 2026-09-04
 ### Security

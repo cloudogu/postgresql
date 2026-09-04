@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [v14.24-2] - 2026-09-04
 ### Changed
 - [#91] Update postgresql to v14.24 — the dogu version v14.24-1 was released while the image still built on PostgreSQL 14.23
 

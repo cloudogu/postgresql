@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Changed
 - [#62] Update postgresql to 17.9
+### Fixed
+- [#62] Fix major upgrade failing because leftover data directories from the previous major version were not cleaned up before restore
+  - The postgres image's entrypoint mistook them for a botched non-pg_upgrade migration and refused to start
 
 ## [v14.21-2] - 2026-03-31
 ### Changed

@@ -31,17 +31,17 @@ function runMigrations() {
 function prepareForRestore() {
   echo "Preparing storage for restore..."
 
-  # Handle databases from old version where data is stored within /var/lib/postgresql
-  if [[ -s "/var/lib/postgresql/PG_VERSION" ]]; then
-    echo "Found legacy database in volume root, cleaning up..."
-
-    # Protected folders:
-    # - backup: holds the backup to be restored
-    # - data: is the volume mount of the postgres image 14
-    # - 14, 15, ect. : Database folder for the upgrade
-    cd /var/lib/postgresql/
-    find . -maxdepth 1 ! -name '.' ! -name 'backup' ! -name 'data' ! -name "${PG_MAJOR%%.*}" -exec rm -rf {} +
-  fi
+  # We restore from a full SQL backup instead of running pg_upgrade, so any on-disk
+  # data from previous versions is obsolete. Remove it, otherwise leftover version
+  # directories (e.g. from a prior major version) are mistaken by the postgres image's
+  # entrypoint for a botched non-pg_upgrade migration and it refuses to start.
+  #
+  # Protected folders:
+  # - backup: holds the backup to be restored
+  # - data: is the volume mount of the postgres image 14
+  # - 14, 15, ect. : Database folder for the current major version, (re-)created below
+  echo "Removing leftover data directories from previous versions..."
+  find /var/lib/postgresql -mindepth 1 -maxdepth 1 ! -name 'backup' ! -name 'data' ! -name "${PG_MAJOR%%.*}" -exec rm -rf {} +
 
   if [[ -d "${PGDATA}" ]]; then
     echo "Cleaning target directory ${PGDATA}..."

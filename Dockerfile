@@ -12,7 +12,7 @@ WORKDIR /gosu-src
 # Clone the `gosu` source code and build it
 RUN apt-get update && apt-get install -y git \
     && git clone https://github.com/tianon/gosu.git . \
-    && git checkout 1.17 \
+    && git checkout 1.19 \
     && go build -o /usr/local/bin/gosu . \
     && chmod +x /usr/local/bin/gosu
 

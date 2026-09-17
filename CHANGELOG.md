@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v14.24-3] - 2026-09-17
+### Changed
+- [#94] Update base image to v3.24.1-3
+
+### Security
+- [#94] Fix [CVE-2026-56854](https://avd.aquasec.com/nvd/cve-2026-56854)
+
 ## [v14.24-2] - 2026-09-04
 ### Changed
 - [#91] Update postgresql to v14.24 — the dogu version v14.24-1 was released while the image still built on PostgreSQL 14.23

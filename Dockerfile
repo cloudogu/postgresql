@@ -3,16 +3,16 @@ ARG PG_MINOR=24
 
 ARG ALPINE_VERSION=3.24
 
-FROM registry.cloudogu.com/official/base:3.24.0-1 AS base-image
+FROM registry.cloudogu.com/official/base:3.24.1-3 AS base-image
 
-FROM golang:1.26.1 AS gosu-builder
+FROM golang:1.26.8 AS gosu-builder
 
 WORKDIR /gosu-src
 
 # Clone the `gosu` source code and build it
 RUN apt-get update && apt-get install -y git \
     && git clone https://github.com/tianon/gosu.git . \
-    && git checkout 1.17 \
+    && git checkout 1.19 \
     && go build -o /usr/local/bin/gosu . \
     && chmod +x /usr/local/bin/gosu
 

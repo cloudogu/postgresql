@@ -5,7 +5,7 @@ ARG ALPINE_VERSION=3.24
 
 FROM registry.cloudogu.com/official/base:3.24.1-3 AS base-image
 
-FROM golang:1.26.1 AS gosu-builder
+FROM golang:1.26.8 AS gosu-builder
 
 WORKDIR /gosu-src
 

@@ -40,7 +40,7 @@ function runMigrateConstraintsOnPartitionedTables() {
                          CASE WHEN pg_catalog.pg_partition_root(conrelid) = confrelid THEN
                                    (SELECT count(*) FROM pg_catalog.pg_partition_tree(confrelid)
                                      WHERE level = 1)
-                              ELSE 0 END);"
+                              ELSE 0 END;"
 
         local result
         result=$(psql -U "${postgres_user}" -d "${DATABASE_NAME}" -t -A -F'|' -c "${QUERY}")

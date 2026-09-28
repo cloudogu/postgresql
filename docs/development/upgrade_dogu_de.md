@@ -27,8 +27,16 @@ Wichtige Punkte:
 Restore-Fall:
 
 1. Wenn `migration_backup_path` gesetzt ist, wird das Zielverzeichnis für einen Restore vorbereitet.
-2. Danach beendet sich `post-upgrade.sh`.
-3. Der eigentliche Restore läuft beim nächsten regulären Start über `01-restore.sh`.
+2. `post-upgrade.sh` initialisiert mit den Funktionen des offiziellen Entrypoints eine neue Datenbank und startet sie temporär.
+3. `restore.sh` spielt das Backup ein, danach laufen Passwort-Rotation und Migrationen wie im regulären Fall.
+4. Erst ganz am Ende wird `local_state` entfernt, bis dahin wartet `startup.sh`.
+
+Der Restore muss vollständig in `post-upgrade.sh` laufen und nicht beim regulären Start:
+Der Dogu-Operator startet den Pod neu, sobald `post-upgrade.sh` beendet ist.
+Ein Restore im Start würde dabei abgebrochen und eine halb eingespielte Datenbank hinterlassen.
+
+Bricht ein Lauf ab, bleibt `migration_backup_path` gesetzt und der nächste Aufruf beginnt mit leerem `PGDATA` von vorne.
+Ein `flock` verhindert, dass ein erneuter Aufruf des Operators einen noch laufenden Restore stört.
 
 Regulärer Migrationsfall:
 
@@ -44,7 +52,7 @@ Vor `doguctl` v0.12.2 nutzte `doguctl random` Gos `math/rand` statt `crypto/rand
 1. Marker `password_rotated` in der Dogu-Config, kein Versionsvergleich.
 2. Reihenfolge: Config, dann `ALTER USER`, dann Marker — eine abgebrochene Rotation wird wiederholt.
 3. Läuft nach `startPostgresql`, weil `ALTER USER` eine laufende DB braucht. Über den Unix-Socket genügt `trust`, das alte Passwort wird nicht gebraucht.
-4. Im Restore-Fall nicht erreicht - dort setzt `initAdmin` Passwort und Marker.
+4. Läuft auch im Restore-Fall, nachdem das Backup eingespielt wurde.
 
 ### Startup (`resources/startup.sh`)
 
@@ -62,9 +70,10 @@ Neue Migrationsskripte kommen nach `resources/migrations/` und werden im Dockerf
 
 Aktuell:
 
-1. `resources/migrations/01-restore.sh`
-2. `resources/migrations/02-restrictStatVisibility.sh`
-3. `resources/migrations/03-migrateConstraintsOnPartitionedTables.sh`
+1. `resources/migrations/02-restrictStatVisibility.sh`
+2. `resources/migrations/03-migrateConstraintsOnPartitionedTables.sh`
+
+Der Restore (`resources/restore.sh`) ist bewusst kein Migrationsskript, er wird nur von `post-upgrade.sh` aufgerufen.
 
 ## Reihenfolge und Konventionen
 

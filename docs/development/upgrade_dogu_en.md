@@ -27,8 +27,16 @@ Important points:
 Restore case:
 
 1. If `migration_backup_path` is set, the target directory is prepared for restore.
-2. Then `post-upgrade.sh` exits.
-3. The actual restore runs on the next regular startup via `01-restore.sh`.
+2. `post-upgrade.sh` initializes a new database with the functions of the official entrypoint and starts it temporarily.
+3. `restore.sh` restores the backup, then password rotation and migrations run as in the regular case.
+4. `local_state` is removed only at the very end, until then `startup.sh` waits.
+
+The restore must run completely within `post-upgrade.sh` and not during the regular startup:
+The Dogu operator restarts the pod as soon as `post-upgrade.sh` has finished.
+A restore during startup would be aborted and leave a partially restored database behind.
+
+If a run is aborted, `migration_backup_path` stays set and the next call starts over with an empty `PGDATA`.
+A `flock` prevents a repeated call by the operator from interfering with a restore that is still running.
 
 Regular migration case:
 
@@ -44,7 +52,7 @@ Before `doguctl` v0.12.2, `doguctl random` used Go's `math/rand` instead of `cry
 1. Marker `password_rotated` in the Dogu config, no version comparison.
 2. Order: config, then `ALTER USER`, then the marker — an aborted rotation is retried.
 3. Runs after `startPostgresql`, because `ALTER USER` needs a running DB. On the Unix socket `trust` applies, so the old password is not needed.
-4. Never reached in the restore case — there `initAdmin` sets password and marker.
+4. Also runs in the restore case, after the backup has been restored.
 
 ### Startup (`resources/startup.sh`)
 
@@ -62,9 +70,10 @@ New migration scripts go into `resources/migrations/` and are copied in the Dock
 
 Current scripts:
 
-1. `resources/migrations/01-restore.sh`
-2. `resources/migrations/02-restrictStatVisibility.sh`
-3. `resources/migrations/03-migrateConstraintsOnPartitionedTables.sh`
+1. `resources/migrations/02-restrictStatVisibility.sh`
+2. `resources/migrations/03-migrateConstraintsOnPartitionedTables.sh`
+
+The restore (`resources/restore.sh`) is deliberately not a migration script, it is only called by `post-upgrade.sh`.
 
 ## Order and conventions
 

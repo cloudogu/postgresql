@@ -3,6 +3,8 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
+# Restores the full backup created by pre-upgrade.sh.
+# It is executed by post-upgrade.sh against the temporary server.
 function runRestore() {
   echo "Running restore script..."
 
@@ -36,13 +38,11 @@ function runRestore() {
 
   echo "Restoring data finished successfully."
 
-  echo "Cleaning backup file..."
-  rm -f "${backupFile}"
-
   echo "Cleaning up backup flag in config..."
   doguctl config --rm "migration_backup_path"
 
-  doguctl state "ready"
+  echo "Cleaning backup file..."
+  rm -f "${backupFile}"
 
   echo "Successfully run restore script..."
 }

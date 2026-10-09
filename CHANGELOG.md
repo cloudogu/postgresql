@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [v14.24-4] - 2026-10-09
 ### Fixed
 - [#96] Restore the backup within the post-upgrade instead of the regular startup. 
   - The dogu operator restarts the pod after the post-upgrade, which aborted the restore and left a partially restored database behind.

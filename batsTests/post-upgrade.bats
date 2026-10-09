@@ -89,12 +89,27 @@ load_script_safely() {
   assert_line --partial "FROM and TO versions are the same"
 }
 
+@test "runPostUpgrade should skip and exit 0 when local_state is not upgrading" {
+  load_script_safely
+  write_step_mocks
+  # local_state has already been removed by a previous, successful post-upgrade run.
+  mock_set_output "${doguctl}" "empty" 1
+
+  run_post_upgrade
+
+  assert_success
+  assert_line --partial "post-upgrade already completed"
+  refute_line --partial "STEP"
+  assert_equal "$(mock_get_call_num "${doguctl}")" "1"
+}
+
 @test "runPostUpgrade should fix permissions and switch to the postgres user when run as root" {
   load_script_safely
   write_step_mocks
   echo 'echo "chown $*"' >> "${BATS_TMPDIR}/chown"
   printf '#!/bin/bash\necho "gosu $*"\n' > "${BATS_TMPDIR}/gosu"
-  mock_set_output "${doguctl}" "postgres" 1
+  mock_set_output "${doguctl}" "upgrading" 1
+  mock_set_output "${doguctl}" "postgres" 2
 
   run_post_upgrade 'id() { echo "0"; }'
 
@@ -102,23 +117,24 @@ load_script_safely() {
   assert_line "chown -R postgres /var/lib/postgresql/"
   assert_line --partial "gosu postgres"
   refute_line --partial "STEP"
-  assert_equal "$(mock_get_call_num "${doguctl}")" "1"
+  assert_equal "$(mock_get_call_num "${doguctl}")" "2"
 }
 
 @test "runPostUpgrade should restore the backup before removing local_state" {
   load_script_safely
   write_step_mocks
   touch "${PG_BASE_DIR}/backup/dump.sql"
-  mock_set_output "${doguctl}" "postgres" 1
-  mock_set_output "${doguctl}" "${PG_BASE_DIR}/backup/dump.sql" 2
+  mock_set_output "${doguctl}" "upgrading" 1
+  mock_set_output "${doguctl}" "postgres" 2
+  mock_set_output "${doguctl}" "${PG_BASE_DIR}/backup/dump.sql" 3
 
   run_post_upgrade
 
   assert_success
   assert_equal "$(echo "${output}" | grep "^STEP" | tr '\n' ' ')" \
     "STEP prepareForRestore STEP initDatabase STEP startPostgresql STEP restoreBackup STEP rotateSuperuserPassword STEP runMigrations STEP stopPostgresql "
-  assert_equal "$(mock_get_call_args "${doguctl}" 3)" "config --rm local_state"
-  assert_equal "$(mock_get_call_num "${doguctl}")" "3"
+  assert_equal "$(mock_get_call_args "${doguctl}" 4)" "config --rm local_state"
+  assert_equal "$(mock_get_call_num "${doguctl}")" "4"
   assert_line "Postgresql post-upgrade done"
 }
 
@@ -126,8 +142,9 @@ load_script_safely() {
   load_script_safely
   write_step_mocks
   touch "${PG_BASE_DIR}/backup/dump.sql"
-  mock_set_output "${doguctl}" "postgres" 1
-  mock_set_output "${doguctl}" "${PG_BASE_DIR}/backup/dump.sql" 2
+  mock_set_output "${doguctl}" "upgrading" 1
+  mock_set_output "${doguctl}" "postgres" 2
+  mock_set_output "${doguctl}" "${PG_BASE_DIR}/backup/dump.sql" 3
 
   run_post_upgrade 'restoreBackup() { echo "STEP restoreBackup"; return 1; }'
 
@@ -136,21 +153,22 @@ load_script_safely() {
   refute_line "STEP runMigrations"
   refute_line "Postgresql post-upgrade done"
   # local_state is not removed, so startup.sh keeps waiting
-  assert_equal "$(mock_get_call_num "${doguctl}")" "2"
+  assert_equal "$(mock_get_call_num "${doguctl}")" "3"
 }
 
 @test "runPostUpgrade should keep the existing data if the backup file is missing" {
   load_script_safely
   write_step_mocks
-  mock_set_output "${doguctl}" "postgres" 1
-  mock_set_output "${doguctl}" "${PG_BASE_DIR}/backup/missing.sql" 2
+  mock_set_output "${doguctl}" "upgrading" 1
+  mock_set_output "${doguctl}" "postgres" 2
+  mock_set_output "${doguctl}" "${PG_BASE_DIR}/backup/missing.sql" 3
 
   run_post_upgrade
 
   assert_failure
   assert_line --partial "ERROR: Backup file ${PG_BASE_DIR}/backup/missing.sql not found on disk!"
   refute_line --partial "STEP"
-  assert_equal "$(mock_get_call_num "${doguctl}")" "2"
+  assert_equal "$(mock_get_call_num "${doguctl}")" "3"
 }
 
 @test "runPostUpgrade should abort if another post-upgrade holds the lock" {
@@ -158,7 +176,8 @@ load_script_safely() {
   write_step_mocks
   echo 'echo "chown $*"' >> "${BATS_TMPDIR}/chown"
   printf '#!/bin/bash\necho "gosu $*"\n' > "${BATS_TMPDIR}/gosu"
-  mock_set_output "${doguctl}" "postgres" 1
+  mock_set_output "${doguctl}" "upgrading" 1
+  mock_set_output "${doguctl}" "postgres" 2
   exec 8>"${POST_UPGRADE_LOCK_FILE}"
   flock -n 8
 
@@ -170,7 +189,7 @@ load_script_safely() {
   refute_line --partial "chown"
   refute_line --partial "gosu"
   refute_line --partial "STEP"
-  assert_equal "$(mock_get_call_num "${doguctl}")" "1"
+  assert_equal "$(mock_get_call_num "${doguctl}")" "2"
 }
 
 @test "runPostUpgrade should skip if database is uninitialized" {
@@ -178,16 +197,17 @@ load_script_safely() {
   write_step_mocks
 
   rm -f "${PGDATA}/PG_VERSION"
-  mock_set_output "${doguctl}" "postgres" 1
-  mock_set_output "${doguctl}" "empty" 2
+  mock_set_output "${doguctl}" "upgrading" 1
+  mock_set_output "${doguctl}" "postgres" 2
+  mock_set_output "${doguctl}" "empty" 3
 
   run_post_upgrade
 
   assert_success
   assert_line "PostgreSQL does not seem to be initialized, skip post upgrade..."
   refute_line --partial "STEP"
-  assert_equal "$(mock_get_call_args "${doguctl}" 3)" "config --rm local_state"
-  assert_equal "$(mock_get_call_num "${doguctl}")" "3"
+  assert_equal "$(mock_get_call_args "${doguctl}" 4)" "config --rm local_state"
+  assert_equal "$(mock_get_call_num "${doguctl}")" "4"
 }
 
 @test "runPostUpgrade should execute init scripts" {
@@ -208,8 +228,9 @@ load_script_safely() {
   }
 
   echo "14" > "${PGDATA}/PG_VERSION"
-  mock_set_output "${doguctl}" "postgres" 1
-  mock_set_output "${doguctl}" "empty" 2
+  mock_set_output "${doguctl}" "upgrading" 1
+  mock_set_output "${doguctl}" "postgres" 2
+  mock_set_output "${doguctl}" "empty" 3
 
   run runPostUpgrade "14.1-1" "14.2-1"
 

@@ -130,6 +130,14 @@ function runPostUpgrade() {
       exit 0
     fi
 
+    # The dogu operator re-runs post-upgrade every reconcile until it exits 0. Once a prior run
+    # finished, startup.sh removed local_state and started postgres (PID 1); a re-run would then
+    # collide with the running server in startPostgresql. Skip cleanly when the work is already done.
+    if [[ "$(doguctl config local_state -d empty)" != "upgrading" ]]; then
+      echo "local_state is not 'upgrading'; post-upgrade already completed. Nothing to do."
+      exit 0
+    fi
+
     local user; user=$(doguctl config -d "postgres" user)
     export PGUSER="${user}"
 

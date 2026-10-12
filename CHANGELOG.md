@@ -11,8 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#62] Update base image to v3.24.2-2
 - [#62] Bump golang to v1.27.2
 ### Fixed
-- [#62] Fix major upgrade failing because leftover data directories from the previous major version were not cleaned up before restore
-  - The postgres image's entrypoint mistook them for a botched non-pg_upgrade migration and refused to start
+- [#62] Fix stale date bug on major upgrade
+
 
 ## [v14.24-4] - 2026-10-09
 ### Fixed

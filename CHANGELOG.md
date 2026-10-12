@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v17.11-1] - 2026-10-12
+### Changed
+- [#62] Update PostgreSQL to v17.11
+- [#62] Update base image to v3.24.2-2
+- [#62] Bump golang to v1.27.2
+### Fixed
+- [#62] Fix stale date bug on major upgrade
+
+
 ## [v14.24-4] - 2026-10-09
 ### Fixed
 - [#96] Restore the backup within the post-upgrade instead of the regular startup. 

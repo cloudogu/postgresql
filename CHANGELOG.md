@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- [#62] Update PostgreSQL to v17.11
+- [#62] Update base image to v3.24.2-2
+- [#62] Bump golang to v1.27.2
+### Fixed
+- [#62] Fix stale date bug on major upgrade
+
 
 ## [v14.24-4] - 2026-10-09
 ### Fixed

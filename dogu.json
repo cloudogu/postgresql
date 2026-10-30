@@ -39,11 +39,18 @@
       "Command": "/remove-sa.sh"
     },
     {
+      "Name": "service-account-rotate",
+      "Description": "Rotates a service account",
+      "Command": "/rotate-sa.sh"
+    },
+    {
       "Name": "pre-upgrade",
+      "Description": "Actions necessary before an upgrade",
       "Command": "/pre-upgrade.sh"
     },
     {
       "Name": "post-upgrade",
+      "Description": "Actions necessary after an upgrade",
       "Command": "/post-upgrade.sh"
     },
     {

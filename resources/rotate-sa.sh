@@ -8,8 +8,8 @@ if [ $# -lt 2 ]; then
     exit 1
 fi
 
-USERNAME="${@: -2:1}"
-SERVICE="${@: -1}"
+USERNAME="${*: -2:1}"
+SERVICE="${*: -1}"
 
 
 # the username must have been created by create-sa.sh for this service: <service>_<6 lowercase alphanumerics>
@@ -29,8 +29,11 @@ fi
 {
     NEW_PASSWORD=$(doguctl random)
 
-    # update password; the statement is passed via stdin so the password does not show up in the process list
-    echo "ALTER USER ${USERNAME} WITH PASSWORD '${NEW_PASSWORD}';" | psql -v ON_ERROR_STOP=1 -U "${ADMIN_USERNAME}"
+    # update password; the statements are passed via stdin so the password does not show up in the process list.
+    # if the ALTER fails, postgres logs the failed statement including the password in plain text
+    # (log_min_error_statement defaults to error). Raising the threshold to panic for this session only
+    # keeps the error message in the log but drops the statement text.
+    echo "SET log_min_error_statement TO panic; ALTER USER ${USERNAME} WITH PASSWORD '${NEW_PASSWORD}';" | psql -v ON_ERROR_STOP=1 -U "${ADMIN_USERNAME}"
 
 } >/dev/null 2>&1
 

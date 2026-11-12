@@ -37,6 +37,8 @@ arrange_existing_user() {
   mock_set_output "${doguctl}" "random123" 2
   mock_set_output "${psql}" "1" 1
   mock_set_side_effect "${psql}" "cat > '${PSQL_STDIN}'" 2
+  # the real psql prints the command tags; the script must keep them away from stdout, because cesapp parses it
+  mock_set_output "${psql}" $'SET\nALTER ROLE' 2
 }
 
 @test "rotate-sa.sh should fail with usage when no arguments are passed" {

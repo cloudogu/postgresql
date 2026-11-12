@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- [#100] Exposed command `service-account-rotate` (`rotate-sa.sh`) which replaces the password of an existing service account
+  and keeps its database, owner and permissions
+  - The new password is passed to `psql` via stdin and kept out of the server log, so it shows up neither in the
+    process list nor in the log.
 
 ## [v17.11-1] - 2026-10-12
 ### Changed

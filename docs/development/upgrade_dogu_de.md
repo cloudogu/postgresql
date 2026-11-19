@@ -66,8 +66,12 @@ gestoppt sind. Der Client übergibt `[Params...] <Benutzername> <Konsument>` und
 2. Das Konto muss in `pg_roles` existieren, sonst endet das Skript mit einem Fehler, ohne etwas zu ändern.
 3. `ALTER USER ... WITH PASSWORD` ändert nur das Passwort; Datenbank, Eigentümer und Rechte bleiben unverändert.
 4. Die Anweisung geht per stdin an `psql`, damit das Passwort nicht in der Prozessliste erscheint. `ON_ERROR_STOP=1`
-   sorgt dafür, dass eine gescheiterte Anweisung einen Exit-Code ungleich 0 liefert, und
-   `SET log_min_error_statement TO panic` hält eine gescheiterte Anweisung samt Passwort aus dem Server-Log heraus.
+   sorgt dafür, dass eine gescheiterte Anweisung einen Exit-Code ungleich 0 liefert.
+   Damit die Anweisung samt Passwort nicht im Server-Log landet, schaltet `PGOPTIONS` beim Verbindungsaufbau alle
+   Einstellungen ab, die Anweisungen loggen: `log_statement`, `log_min_duration_statement`, `log_min_duration_sample`,
+   `log_transaction_sample_rate`, `log_min_error_statement` und `debug_print_*`. Das gilt nur für diese eine
+   Verbindung, und zwar bevor die Anweisung beim Server ankommt. Ein `SET` in derselben Eingabe würde dagegen schon
+   geloggt, bevor es greift, wenn `psql` die Eingabe als einen einzigen Query-String schickt.
 5. Im Erfolgsfall ist `password: ...` die einzige Ausgabe, auch auf stderr. Im Fehlerfall endet das Skript mit einem
    Exit-Code ungleich 0 und gibt kein Passwort aus.
 

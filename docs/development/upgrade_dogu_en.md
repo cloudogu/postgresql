@@ -66,8 +66,12 @@ consumers are stopped. The client passes `[params...] <username> <consumer>` and
 2. The account must exist in `pg_roles`, otherwise the script fails without changing anything.
 3. `ALTER USER ... WITH PASSWORD` changes the password only; database, owner and permissions stay unchanged.
 4. The statement is passed via stdin, so the password does not show up in the process list. `ON_ERROR_STOP=1` makes a
-   failed statement exit non-zero, and `SET log_min_error_statement TO panic` keeps a failed statement including the
-   password out of the server log.
+   failed statement exit non-zero.
+   To keep the statement including the password out of the server log, `PGOPTIONS` turns off every setting that logs
+   statements when the connection is established: `log_statement`, `log_min_duration_statement`,
+   `log_min_duration_sample`, `log_transaction_sample_rate`, `log_min_error_statement` and `debug_print_*`. This
+   applies to this one connection only, before the statement reaches the server. A `SET` in the same input, in
+   contrast, would already be logged before it takes effect if `psql` sent the input as a single query string.
 5. On success, `password: ...` is the only output, also on stderr. On failure, the script exits non-zero and prints no
    password.
 

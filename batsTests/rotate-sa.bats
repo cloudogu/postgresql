@@ -22,23 +22,24 @@ setup() {
   ln -sf "${doguctl}" "${BATS_TMPDIR}/doguctl"
   ln -sf "${psql}" "${BATS_TMPDIR}/psql"
 
-  # psql receives the ALTER statement via stdin; the side effect stores it for assertions
+  # psql receives the ALTER statement via stdin and the log settings via PGOPTIONS; the side effect stores both
   PSQL_STDIN="${BATS_TMPDIR}/psql_stdin"
-  export PSQL_STDIN
-  rm -f "${PSQL_STDIN}"
+  PSQL_PGOPTIONS="${BATS_TMPDIR}/psql_pgoptions"
+  export PSQL_STDIN PSQL_PGOPTIONS
+  rm -f "${PSQL_STDIN}" "${PSQL_PGOPTIONS}"
 }
 
 teardown() {
-  rm -f "${BATS_TMPDIR}/doguctl" "${BATS_TMPDIR}/psql" "${PSQL_STDIN}"
+  rm -f "${BATS_TMPDIR}/doguctl" "${BATS_TMPDIR}/psql" "${PSQL_STDIN}" "${PSQL_PGOPTIONS}"
 }
 
 arrange_existing_user() {
   mock_set_output "${doguctl}" "postgres" 1
   mock_set_output "${doguctl}" "random123" 2
   mock_set_output "${psql}" "1" 1
-  mock_set_side_effect "${psql}" "cat > '${PSQL_STDIN}'" 2
-  # the real psql prints the command tags; the script must keep them away from stdout, because cesapp parses it
-  mock_set_output "${psql}" $'SET\nALTER ROLE' 2
+  mock_set_side_effect "${psql}" "printf '%s' \"\${PGOPTIONS:-}\" > '${PSQL_PGOPTIONS}'; cat > '${PSQL_STDIN}'" 2
+  # the real psql prints the command tag; the script must keep it away from stdout, because cesapp parses it
+  mock_set_output "${psql}" "ALTER ROLE" 2
 }
 
 @test "rotate-sa.sh should fail with usage when no arguments are passed" {
@@ -108,7 +109,7 @@ arrange_existing_user() {
   assert_equal "$(mock_get_call_args "${doguctl}" 1)" "config user"
   assert_equal "$(mock_get_call_args "${doguctl}" 2)" "random"
   assert_equal "$(mock_get_call_num "${psql}")" "2"
-  assert_equal "$(cat "${PSQL_STDIN}")" "SET log_min_error_statement TO panic; ALTER USER redmine_5deimx WITH PASSWORD 'random123';"
+  assert_equal "$(cat "${PSQL_STDIN}")" "ALTER USER redmine_5deimx WITH PASSWORD 'random123';"
 }
 
 @test "rotate-sa.sh should not pass the password as a command line argument to psql" {
@@ -127,7 +128,7 @@ arrange_existing_user() {
 
   assert_success
   assert_output "password: random123"
-  assert_equal "$(cat "${PSQL_STDIN}")" "SET log_min_error_statement TO panic; ALTER USER redmine_5deimx WITH PASSWORD 'random123';"
+  assert_equal "$(cat "${PSQL_STDIN}")" "ALTER USER redmine_5deimx WITH PASSWORD 'random123';"
 }
 
 @test "rotate-sa.sh should not print a password when the ALTER statement fails" {
@@ -139,4 +140,14 @@ arrange_existing_user() {
   assert_failure
   assert_output ""
   [[ "${stderr}" != *"random123"* ]]
+}
+
+@test "rotate-sa.sh should turn off every log setting that writes the statement with the password into the server log" {
+  arrange_existing_user
+
+  run --separate-stderr /workspace/resources/rotate-sa.sh redmine_5deimx redmine
+
+  assert_success
+  # PGOPTIONS applies the settings when psql connects, before the ALTER statement reaches the server
+  assert_equal "$(cat "${PSQL_PGOPTIONS}")" "-c log_statement=none -c log_min_duration_statement=-1 -c log_min_duration_sample=-1 -c log_transaction_sample_rate=0 -c log_min_error_statement=panic -c debug_print_parse=off -c debug_print_rewritten=off -c debug_print_plan=off"
 }

@@ -12,6 +12,7 @@ def pipe = new com.cloudogu.sos.pipebuildlib.DoguPipe(this, [
                             resources/post-upgrade.sh
                             resources/pre-upgrade.sh
                             resources/remove-sa.sh
+                            resources/rotate-sa.sh
                             resources/startup.sh
                             resources/upgrade-notification.sh
                             resources/util.sh

@@ -54,6 +54,27 @@ Vor `doguctl` v0.12.2 nutzte `doguctl random` Gos `math/rand` statt `crypto/rand
 3. Läuft nach `startPostgresql`, weil `ALTER USER` eine laufende DB braucht. Über den Unix-Socket genügt `trust`, das alte Passwort wird nicht gebraucht.
 4. Läuft auch im Restore-Fall, nachdem das Backup eingespielt wurde.
 
+### Rotation der Service-Account-Passwörter (`resources/rotate-sa.sh`)
+
+Die Passwörter der Service Accounts stammen aus demselben `doguctl random`. Sie rotiert der Dogu-Client (`cesapp`)
+beim Upgrade über den Exposed Command `service-account-rotate`, nach dem Post-Upgrade und solange die Konsumenten
+gestoppt sind. Der Client übergibt `[Params...] <Benutzername> <Konsument>` und legt die ausgegebene Zeile
+`password: ...` in der Konfiguration des Konsumenten ab.
+
+1. Der Benutzername muss `<Konsument>_<6 Kleinbuchstaben oder Ziffern>` entsprechen, wie ihn `create-sa.sh` anlegt.
+   Die Prüfung läuft vor jedem SQL und verhindert SQL-Injection und Änderungen an fremden Konten.
+2. Das Konto muss in `pg_roles` existieren, sonst endet das Skript mit einem Fehler, ohne etwas zu ändern.
+3. `ALTER USER ... WITH PASSWORD` ändert nur das Passwort; Datenbank, Eigentümer und Rechte bleiben unverändert.
+4. Die Anweisung geht per stdin an `psql`, damit das Passwort nicht in der Prozessliste erscheint. `ON_ERROR_STOP=1`
+   sorgt dafür, dass eine gescheiterte Anweisung einen Exit-Code ungleich 0 liefert.
+   Damit die Anweisung samt Passwort nicht im Server-Log landet, schaltet `PGOPTIONS` beim Verbindungsaufbau alle
+   Einstellungen ab, die Anweisungen loggen: `log_statement`, `log_min_duration_statement`, `log_min_duration_sample`,
+   `log_transaction_sample_rate`, `log_min_error_statement` und `debug_print_*`. Das gilt nur für diese eine
+   Verbindung, und zwar bevor die Anweisung beim Server ankommt. Ein `SET` in derselben Eingabe würde dagegen schon
+   geloggt, bevor es greift, wenn `psql` die Eingabe als einen einzigen Query-String schickt.
+5. Im Erfolgsfall ist `password: ...` die einzige Ausgabe, auch auf stderr. Im Fehlerfall endet das Skript mit einem
+   Exit-Code ungleich 0 und gibt kein Passwort aus.
+
 ### Startup (`resources/startup.sh`)
 
 `startup.sh` wartet, solange `local_state=upgrading` gesetzt ist.
